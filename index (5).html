@@ -1,0 +1,2584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SK Viral Clips</title>
+<meta name="description" content="Free browser-based tool for turning long videos into vertical Shorts.">
+<style>
+/* =====================================================
+   1. THEME VARIABLES
+   ===================================================== */
+:root{
+  --bg:#0a0a0b;
+  --bg-2:#111113;
+  --card:#17171a;
+  --card-2:#1e1e22;
+  --border:#2a2a30;
+  --text:#f2f2f3;
+  --muted:#9a9aa3;
+  --red:#e5222b;
+  --red-2:#ff3b44;
+  --red-soft:rgba(229,34,43,.14);
+  --green:#2ecc71;
+  --radius:14px;
+  --sidebar-w:250px;
+  --shadow:0 10px 30px rgba(0,0,0,.45);
+}
+
+/* =====================================================
+   2. BASE / RESET
+   ===================================================== */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  background:radial-gradient(1200px 600px at 80% -10%,rgba(229,34,43,.08),transparent 60%),var(--bg);
+  color:var(--text);
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+a{color:inherit;text-decoration:none}
+svg{width:20px;height:20px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:#2c2c33;border-radius:10px}
+
+/* =====================================================
+   3. LAYOUT: SIDEBAR + MAIN
+   ===================================================== */
+.app{display:flex;min-height:100vh}
+
+.sidebar{
+  position:fixed;inset:0 auto 0 0;
+  width:var(--sidebar-w);
+  background:var(--bg-2);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  padding:22px 16px;
+  z-index:50;
+  transition:transform .3s ease;
+}
+.logo{display:flex;align-items:center;gap:12px;padding:4px 8px 26px}
+.logo-mark{
+  width:40px;height:40px;border-radius:12px;
+  background:linear-gradient(135deg,var(--red),#8f0f16);
+  display:grid;place-items:center;
+  font-weight:800;font-size:15px;letter-spacing:.5px;
+  box-shadow:0 6px 18px rgba(229,34,43,.4);
+}
+.logo-text{font-weight:800;font-size:17px;line-height:1.1}
+.logo-text span{color:var(--red-2)}
+
+.nav{display:flex;flex-direction:column;gap:4px}
+.nav-btn{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 14px;border-radius:10px;
+  color:var(--muted);font-weight:500;text-align:left;
+  transition:background .2s,color .2s,transform .2s;
+}
+.nav-btn:hover{background:var(--card);color:var(--text);transform:translateX(2px)}
+.nav-btn.active{background:var(--red-soft);color:var(--red-2);box-shadow:inset 3px 0 0 var(--red)}
+
+.sidebar-footer{
+  margin-top:auto;padding:14px;border-radius:12px;
+  background:var(--card);border:1px solid var(--border);
+  font-size:13px;color:var(--muted);
+}
+.sidebar-footer strong{color:var(--text);display:block;margin-bottom:2px}
+
+.main{margin-left:var(--sidebar-w);flex:1;min-width:0}
+
+.topbar{
+  position:sticky;top:0;z-index:40;
+  display:flex;align-items:center;gap:14px;
+  padding:16px 28px;
+  background:rgba(10,10,11,.8);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+}
+.menu-btn{display:none;padding:8px;border-radius:10px;background:var(--card);border:1px solid var(--border)}
+.topbar h1{font-size:20px;font-weight:700}
+.topbar .spacer{flex:1}
+
+.content{padding:28px;max-width:1200px;margin:0 auto}
+
+/* =====================================================
+   4. COMPONENTS
+   ===================================================== */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:11px 20px;border-radius:10px;font-weight:600;
+  transition:transform .2s,box-shadow .2s,background .2s,opacity .2s;
+}
+.btn-primary{background:linear-gradient(135deg,var(--red),#b9161d);color:#fff;box-shadow:0 6px 18px rgba(229,34,43,.3)}
+.btn-primary:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 10px 24px rgba(229,34,43,.45)}
+.btn-ghost{background:var(--card);border:1px solid var(--border)}
+.btn-ghost:hover:not(:disabled){background:var(--card-2);transform:translateY(-1px)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+.card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);padding:22px;
+  transition:border-color .25s,transform .25s;
+}
+.card:hover{border-color:#3a3a42}
+.card h2{font-size:17px;margin-bottom:4px}
+.card .sub{color:var(--muted);font-size:14px;margin-bottom:18px}
+
+.grid{display:grid;gap:18px}
+.grid-3{grid-template-columns:repeat(3,1fr)}
+.grid-2{grid-template-columns:repeat(2,1fr)}
+
+.stat{display:flex;align-items:center;gap:16px}
+.stat-icon{
+  width:50px;height:50px;border-radius:14px;
+  background:var(--red-soft);color:var(--red-2);
+  display:grid;place-items:center;
+}
+.stat-icon svg{width:24px;height:24px}
+.stat-value{font-size:30px;font-weight:800;line-height:1}
+.stat-label{color:var(--muted);font-size:13px;margin-top:4px}
+
+.section-title{display:flex;align-items:center;justify-content:space-between;margin:30px 0 14px}
+.section-title h2{font-size:18px}
+
+.empty{
+  text-align:center;padding:44px 20px;color:var(--muted);
+  border:1px dashed var(--border);border-radius:var(--radius);
+}
+.empty svg{width:40px;height:40px;margin-bottom:10px;color:#55555e}
+.empty p{margin-bottom:16px}
+
+.hero{
+  padding:30px;border-radius:var(--radius);
+  background:linear-gradient(120deg,rgba(229,34,43,.22),rgba(229,34,43,.03) 60%),var(--card);
+  border:1px solid #3a1c1f;
+  display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;
+}
+.hero h2{font-size:24px;margin-bottom:6px}
+.hero p{color:var(--muted);max-width:520px}
+
+/* Support / thank-you banner on dashboard */
+.support-banner{
+  margin-top:18px;padding:22px 24px;border-radius:16px;
+  background:linear-gradient(125deg,rgba(229,34,43,.16),rgba(229,34,43,.035) 58%),var(--card);
+  border:1px solid rgba(229,34,43,.38);display:flex;align-items:center;
+  justify-content:space-between;gap:18px;flex-wrap:wrap;
+}
+.support-banner h3{font-size:18px;margin:0 0 7px}
+.support-banner p{color:var(--muted);max-width:720px;margin:0;line-height:1.7}
+.support-actions{display:flex;gap:10px;flex-wrap:wrap}
+.support-actions a{text-decoration:none}
+
+.badge{
+  display:inline-block;padding:3px 10px;border-radius:999px;
+  font-size:12px;font-weight:600;
+  background:var(--red-soft);color:var(--red-2);
+}
+.badge.green{background:rgba(46,204,113,.14);color:var(--green)}
+.badge.grey{background:#26262b;color:var(--muted)}
+
+/* Forms */
+label.field{display:block;font-size:13px;color:var(--muted);margin-bottom:6px;font-weight:500}
+.input,select.input{
+  width:100%;padding:12px 14px;border-radius:10px;
+  background:var(--bg-2);border:1px solid var(--border);
+  outline:none;transition:border-color .2s,box-shadow .2s;
+}
+.input:focus{border-color:var(--red);box-shadow:0 0 0 3px var(--red-soft)}
+.input:disabled{opacity:.5;cursor:not-allowed}
+.form-row{margin-bottom:16px}
+
+/* Tabs */
+.tabs{display:flex;gap:6px;padding:5px;background:var(--bg-2);border:1px solid var(--border);border-radius:12px;width:fit-content;margin-bottom:20px}
+.tab{padding:9px 18px;border-radius:8px;color:var(--muted);font-weight:600;transition:all .2s}
+.tab.active{background:var(--red);color:#fff}
+.tab-panel{display:none}
+.tab-panel.active{display:block;animation:fade .35s ease}
+
+/* Dropzone */
+.dropzone{
+  border:2px dashed var(--border);border-radius:var(--radius);
+  padding:40px 20px;text-align:center;color:var(--muted);
+  transition:border-color .2s,background .2s;
+}
+.dropzone svg{width:38px;height:38px;color:var(--red-2);margin-bottom:8px}
+.dropzone small{display:block;margin-top:6px}
+
+/* Option chips */
+.chips{display:flex;gap:10px;flex-wrap:wrap}
+.chip{
+  padding:10px 18px;border-radius:10px;
+  background:var(--bg-2);border:1px solid var(--border);
+  font-weight:600;transition:all .2s;
+}
+.chip:hover{border-color:#44444d}
+.chip.active{background:var(--red-soft);border-color:var(--red);color:var(--red-2)}
+
+/* Range slider */
+input[type=range]{width:100%;accent-color:var(--red)}
+.range-head{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:6px}
+.range-head b{color:var(--text)}
+
+/* Upload preview */
+[hidden]{display:none!important}
+.dropzone.drag{border-color:var(--red);background:var(--red-soft)}
+.preview video{width:100%;max-height:300px;background:#000;border-radius:12px;display:block}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.meta-item{background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;min-width:0}
+.meta-item span{display:block;font-size:12px;color:var(--muted)}
+.meta-item b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.warn{font-size:13px;color:#ffd866;margin-bottom:12px}
+.err{font-size:13px;color:var(--red-2);margin-top:12px}
+.yt-card{display:flex;gap:14px;margin-top:16px;padding:12px;background:var(--bg-2);border:1px solid var(--border);border-radius:12px}
+.yt-card img{width:130px;height:73px;object-fit:cover;border-radius:8px;flex-shrink:0;background:#000}
+.yt-card b{display:block;font-size:14px;overflow-wrap:anywhere}
+.yt-card span{font-size:13px;color:var(--muted);display:block}
+@media (max-width:480px){.yt-card{flex-direction:column}.yt-card img{width:100%;height:auto;aspect-ratio:16/9}}
+
+/* Step 3: editor */
+.hint{font-size:13px;color:var(--muted);margin-top:10px}
+.editor{margin-top:18px}
+.editor-grid{display:grid;grid-template-columns:300px 1fr;gap:28px;align-items:start}
+.phone{width:100%;max-width:300px;margin:0 auto}
+.phone-frame{
+  position:relative;aspect-ratio:9/16;background:#000;
+  border:2px solid var(--border);border-radius:22px;overflow:hidden;
+  box-shadow:var(--shadow);cursor:grab;touch-action:none;
+}
+.phone-frame.panning{cursor:grabbing}
+.phone-frame canvas{width:100%;height:100%;display:block}
+
+.tl-wrap{padding:8px 10px}
+.tl-track{
+  position:relative;height:56px;border-radius:12px;
+  background:var(--bg-2) repeating-linear-gradient(90deg,rgba(255,255,255,.07) 0 1px,transparent 1px 10%);
+  border:1px solid var(--border);cursor:pointer;touch-action:none;user-select:none;
+}
+.tl-range{position:absolute;top:0;bottom:0;background:var(--red-soft);border-top:2px solid var(--red);border-bottom:2px solid var(--red);pointer-events:none}
+.tl-range.bad{background:rgba(255,193,7,.12);border-color:#ffc107}
+.tl-playhead{position:absolute;top:-5px;bottom:-5px;width:2px;margin-left:-1px;background:#fff;pointer-events:none;z-index:2}
+.tl-handle{
+  position:absolute;top:-6px;bottom:-6px;width:16px;margin-left:-8px;z-index:3;
+  background:var(--red);border-radius:6px;cursor:ew-resize;touch-action:none;
+  box-shadow:0 2px 8px rgba(0,0,0,.5);outline:none;
+}
+.tl-handle::after{content:'';position:absolute;left:50%;top:30%;bottom:30%;width:2px;margin-left:-1px;background:rgba(255,255,255,.85);border-radius:2px}
+.tl-handle:focus-visible{box-shadow:0 0 0 3px #fff}
+.tl-handle.dragging{background:var(--red-2)}
+.tl-labels{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);padding:0 10px}
+
+.transport{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:18px 0}
+.readout{background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:8px 12px}
+.readout span{display:block;font-size:12px;color:var(--muted)}
+.readout b{font-size:14px;font-variant-numeric:tabular-nums}
+
+.trim-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.input-row{display:flex;gap:8px}
+.input-row .btn{padding:10px 12px;font-size:13px;white-space:nowrap}
+.mono{font-variant-numeric:tabular-nums}
+.clip-status{display:flex;align-items:center;gap:10px;margin:16px 0 8px}
+.clip-status span:first-child{color:var(--muted);font-size:13px}
+.clip-status b{font-size:18px;font-variant-numeric:tabular-nums}
+.crop-controls{display:grid;gap:14px;margin-top:20px;padding-top:20px;border-top:1px solid var(--border)}
+.clip-row{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  padding:12px 14px;margin-bottom:8px;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;
+}
+.clip-row b{display:block;font-size:14px}
+.clip-row span{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.clip-actions{display:flex;gap:8px}
+.clip-actions .btn{padding:8px 14px;font-size:13px}
+@media (max-width:820px){
+  .editor-grid{grid-template-columns:1fr}
+  .trim-grid{grid-template-columns:1fr}
+}
+
+/* Step 4: captions */
+.mini-title{font-size:14px;margin:20px 0 8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.mini-title:first-child{margin-top:0}
+.cap-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}
+.cap-toolbar .btn{padding:9px 14px;font-size:13px}
+.cue-list{max-height:460px;overflow:auto;padding-right:4px}
+.cue-row{display:grid;grid-template-columns:100px 1fr auto;gap:8px;align-items:start;padding:10px;margin-bottom:8px;background:var(--bg-2);border:1px solid var(--border);border-radius:10px}
+.cue-times,.cue-btns{display:grid;gap:6px}
+.cue-times .input{padding:7px 8px;font-size:13px}
+.cue-row textarea{resize:vertical;min-height:64px}
+.cue-btns .btn{padding:7px 10px;font-size:12px}
+.style-grid{display:grid;gap:14px}
+.style-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+input[type=color]{width:100%;height:42px;padding:3px;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;cursor:pointer}
+.check{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
+.check input{accent-color:var(--red)}
+textarea.input{resize:vertical;font-family:inherit}
+code{background:var(--bg-2);padding:1px 6px;border-radius:6px;font-size:12px}
+.suggest-row{padding:12px;margin-top:8px;background:var(--bg-2);border:1px solid var(--border);border-radius:10px}
+.suggest-row b{display:block;font-size:14px;overflow-wrap:anywhere}
+.suggest-row span{font-size:13px;color:var(--muted);display:block}
+.suggest-actions{display:flex;gap:8px;margin-top:8px}
+.suggest-actions .btn{padding:7px 12px;font-size:12px}
+
+/* Step 5 + 6: shorts list, export modal, project bar */
+.proj-bar{display:flex;gap:10px;margin:0 0 18px;flex-wrap:wrap}
+.proj-bar .input{flex:1;min-width:180px}
+.clip-info{flex:1;min-width:200px}
+.clip-title{padding:7px 10px;font-weight:600;margin-bottom:4px}
+.clip-actions{flex-wrap:wrap}
+.modal{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.78);display:grid;place-items:center;padding:16px;overflow:auto}
+.modal-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;width:100%;max-width:440px;box-shadow:var(--shadow)}
+.modal-box h2{font-size:18px;margin-bottom:4px}
+.modal-box video{width:100%;max-height:50vh;background:#000;border-radius:12px;margin:12px 0}
+.progress{height:10px;background:var(--bg-2);border-radius:99px;overflow:hidden;margin:16px 0 8px}
+.progress div{height:100%;width:0;background:linear-gradient(90deg,var(--red),var(--red-2));transition:width .15s linear}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+@media (max-width:480px){.cue-row{grid-template-columns:1fr}.style-row{grid-template-columns:1fr}}
+
+/* Notice */
+.notice{
+  padding:14px 16px;border-radius:10px;font-size:14px;
+  background:rgba(255,193,7,.08);border:1px solid rgba(255,193,7,.25);color:#ffd866;
+  margin-bottom:18px;
+}
+
+/* Table (projects) */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:560px}
+th,td{padding:14px 16px;text-align:left;border-bottom:1px solid var(--border);font-size:14px}
+th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.6px}
+tr:last-child td{border-bottom:none}
+
+/* Accordion (help) */
+.faq{border-bottom:1px solid var(--border)}
+.faq:last-child{border-bottom:none}
+.faq button{width:100%;display:flex;justify-content:space-between;align-items:center;padding:16px 0;font-weight:600;text-align:left}
+.faq button svg{transition:transform .25s}
+.faq.open button svg{transform:rotate(180deg)}
+.faq .answer{max-height:0;overflow:hidden;color:var(--muted);font-size:14px;transition:max-height .3s ease}
+.faq.open .answer{max-height:300px;padding-bottom:16px}
+
+/* Toast */
+.toast{
+  position:fixed;bottom:24px;right:24px;z-index:100;
+  padding:14px 20px;border-radius:12px;
+  background:var(--card-2);border:1px solid var(--border);box-shadow:var(--shadow);
+  transform:translateY(20px);opacity:0;pointer-events:none;
+  transition:all .3s ease;max-width:90vw;
+}
+.toast.show{transform:none;opacity:1}
+
+/* Views & animation */
+.view{display:none}
+.view.active{display:block;animation:fade .4s ease}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:45}
+
+/* =====================================================
+   5. RESPONSIVE
+   ===================================================== */
+@media (max-width:1024px){
+  .grid-3{grid-template-columns:1fr 1fr}
+}
+@media (max-width:820px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:none}
+  .overlay.show{display:block}
+  .main{margin-left:0}
+  .menu-btn{display:block}
+  .topbar{padding:14px 18px}
+  .content{padding:18px}
+  .grid-3,.grid-2{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar" id="sidebar">
+    <div class="logo">
+      <div class="logo-mark">SK</div>
+      <div class="logo-text">SK Viral<br><span>Clips</span></div>
+    </div>
+
+    <nav class="nav" id="nav">
+      <button class="nav-btn active" data-view="dashboard">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-btn" data-view="create">
+        <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M10 9l5 3-5 3z"/></svg>
+        Create Shorts
+      </button>
+      <button class="nav-btn" data-view="projects">
+        <svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        My Projects
+      </button>
+      <button class="nav-btn" data-view="settings">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+        Settings
+      </button>
+      <button class="nav-btn" data-view="help">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></svg>
+        Help
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <strong>100% Free</strong>
+      Runs in your browser. Your videos never leave your device.
+    </div>
+  </aside>
+  <div class="overlay" id="overlay"></div>
+
+  <!-- ================= MAIN ================= -->
+  <div class="main">
+    <header class="topbar">
+      <button class="menu-btn" id="menuBtn" aria-label="Open menu">
+        <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <h1 id="pageTitle">Dashboard</h1>
+      <div class="spacer"></div>
+      <button class="btn btn-primary" data-goto="create">+ New Project</button>
+    </header>
+
+    <main class="content">
+
+      <!-- ========== VIEW: DASHBOARD ========== -->
+      <section class="view active" id="view-dashboard">
+        <div class="hero">
+          <div>
+            <h2>Turn long videos into vertical Shorts</h2>
+            <p>Upload a video, pick your best moments, add captions and export 9:16 clips, all free and inside your browser.</p>
+          </div>
+          <button class="btn btn-primary" data-goto="create">Create Shorts</button>
+        </div>
+
+        <div class="support-banner">
+          <div>
+            <h3>❤️ Enjoying SK Viral Clips? Help Us Grow!</h3>
+            <p>অন্যান্য অনেক ওয়েবসাইটে এ ধরনের কাজ করতে অনেক টাকা খরচ করতে হতো। কিন্তু SK Viral Clips-এ আমরা এই সুবিধাগুলো তোমাদের জন্য সম্পূর্ণ ফ্রিতে দেওয়ার চেষ্টা করছি। তাই আমাদের এই উদ্যোগকে সমর্থন করতে YouTube চ্যানেল ও Facebook পেজটি Follow করে পাশে থেকো। তোমাদের Support-ই আমাদের আরও ভালো ফিচার তৈরি করতে অনুপ্রেরণা দেবে।</p>
+          </div>
+          <div class="support-actions">
+            <a class="btn btn-primary" href="https://www.youtube.com/@RoblivoX-01" target="_blank" rel="noopener noreferrer">▶ Follow on YouTube</a>
+            <a class="btn btn-ghost" href="https://www.facebook.com/profile.php?id=61594947639441" target="_blank" rel="noopener noreferrer">f Follow on Facebook</a>
+          </div>
+        </div>
+
+        <div class="section-title"><h2>Overview</h2></div>
+        <div class="grid grid-3">
+          <div class="card stat">
+            <div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div>
+            <div><div class="stat-value" id="statProjects">0</div><div class="stat-label">Total Projects</div></div>
+          </div>
+          <div class="card stat">
+            <div class="stat-icon"><svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 10l3 2-3 2z"/></svg></div>
+            <div><div class="stat-value" id="statShorts">0</div><div class="stat-label">Total Shorts Created</div></div>
+          </div>
+          <div class="card stat">
+            <div class="stat-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+            <div><div class="stat-value" id="statRecent">0</div><div class="stat-label">Recent Projects (last 7 days)</div></div>
+          </div>
+        </div>
+
+        <div class="section-title">
+          <h2>Recent Projects</h2>
+          <button class="btn btn-ghost" data-goto="projects">View all</button>
+        </div>
+        <div id="recentList"></div>
+      </section>
+
+      <!-- ========== VIEW: CREATE SHORTS ========== -->
+      <section class="view" id="view-create">
+        <div class="notice">
+          <b>How it works:</b> add a video, trim and frame it for 9:16, add captions, then export each Short from the list.
+        </div>
+        <div class="notice" id="pendingBanner" hidden>
+          <span id="pendingText"></span>
+          <button class="btn btn-ghost" id="pendingCancel" style="padding:6px 12px;margin-left:8px">Cancel</button>
+        </div>
+
+        <div class="grid grid-2">
+          <!-- Input card -->
+          <div class="card">
+            <h2>1. Add your video</h2>
+            <p class="sub">Use your own video file, or look up a YouTube link.</p>
+
+            <div class="tabs" id="inputTabs">
+              <button class="tab active" data-tab="upload">Upload Video</button>
+              <button class="tab" data-tab="youtube">YouTube Link</button>
+            </div>
+
+            <div class="tab-panel active" id="tab-upload">
+              <!-- Drop area (hidden once a video is loaded) -->
+              <div class="dropzone" id="dropzone">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                <div><b>Drop a video here</b></div>
+                <small>MP4, WebM or MOV, processed on your device</small>
+                <input type="file" id="fileInput" accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov" hidden>
+                <button class="btn btn-ghost" id="chooseFile" style="margin-top:16px">Choose File</button>
+              </div>
+
+              <!-- Preview (shown once a video is loaded) -->
+              <div class="preview" id="preview" hidden>
+                <video id="previewVideo" controls playsinline preload="metadata"></video>
+                <div class="meta">
+                  <div class="meta-item"><span>File</span><b id="metaName">-</b></div>
+                  <div class="meta-item"><span>Duration</span><b id="metaDuration">-</b></div>
+                  <div class="meta-item"><span>Size</span><b id="metaSize">-</b></div>
+                  <div class="meta-item"><span>Resolution</span><b id="metaRes">-</b></div>
+                </div>
+                <p class="warn" id="metaWarn" hidden></p>
+                <button class="btn btn-ghost" id="removeVideo">Remove video</button>
+              </div>
+            </div>
+
+            <div class="tab-panel" id="tab-youtube">
+              <div class="form-row">
+                <label class="field" for="ytUrl">YouTube URL</label>
+                <input class="input" id="ytUrl" type="url" placeholder="https://www.youtube.com/watch?v=...">
+              </div>
+              <button class="btn btn-ghost" id="ytCheck">Check Link</button>
+              <div id="ytResult"></div>
+              <p class="sub" style="margin-top:14px;margin-bottom:0">
+                Browsers cannot download YouTube videos, and doing so would break YouTube's terms. This tab will only validate the link and show public info. To make clips, upload a file you own.
+              </p>
+            </div>
+          </div>
+
+          <!-- Options card -->
+          <div class="card">
+            <h2>2. Short settings</h2>
+            <p class="sub">Choose how many clips and how they look.</p>
+
+            <div class="form-row">
+              <label class="field">Number of Shorts</label>
+              <div class="chips" data-group="count">
+                <button class="chip active" data-val="3">3 Shorts</button>
+                <button class="chip" data-val="5">5 Shorts</button>
+                <button class="chip" data-val="10">10 Shorts</button>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="range-head"><span>Short duration</span><b id="durLabel">30s</b></div>
+              <input type="range" id="durRange" min="15" max="60" step="5" value="30">
+            </div>
+
+            <div class="form-row">
+              <label class="field">Resolution</label>
+              <div class="chips" data-group="res">
+                <button class="chip active" data-val="720p">720p</button>
+                <button class="chip" data-val="1080p">1080p</button>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label class="field">Aspect ratio</label>
+              <div class="chips"><button class="chip active" style="cursor:default">9:16 Vertical</button></div>
+            </div>
+
+            <button class="btn btn-primary" id="genBtn" style="width:100%" disabled>Generate Shorts</button>
+            <p class="hint" id="genHint">Add a video first.</p>
+          </div>
+        </div>
+
+        <!-- ===== STEP 3: TRIM, TIMELINE AND 9:16 CROP EDITOR ===== -->
+        <div class="card editor" id="editorCard" hidden>
+          <h2>3. Trim &amp; crop</h2>
+          <p class="sub">Choose the part of the video to use and frame it for vertical 9:16.</p>
+
+          <!-- Step 6: project name + save -->
+          <div class="proj-bar">
+            <input class="input" id="projName" placeholder="Project name" maxlength="80" aria-label="Project name">
+            <button class="btn btn-ghost" id="saveProject">Save Project</button>
+          </div>
+
+          <div class="editor-grid">
+            <!-- Left: live 9:16 preview -->
+            <div class="phone">
+              <div class="phone-frame" id="phoneFrame">
+                <canvas id="cropCanvas" width="540" height="960"></canvas>
+              </div>
+              <p class="hint" style="text-align:center">Live 9:16 preview. Drag the picture to reposition it.</p>
+            </div>
+
+            <!-- Right: timeline, trim and crop controls -->
+            <div>
+              <label class="field">Timeline (drag the red markers, click to move the playhead)</label>
+              <div class="tl-wrap">
+                <div class="tl-track" id="tlTrack">
+                  <div class="tl-range" id="tlRange"></div>
+                  <div class="tl-playhead" id="tlPlayhead"></div>
+                  <div class="tl-handle" id="tlStart" role="slider" tabindex="0" aria-label="Clip start" title="Clip start"></div>
+                  <div class="tl-handle" id="tlEnd" role="slider" tabindex="0" aria-label="Clip end" title="Clip end"></div>
+                </div>
+              </div>
+              <div class="tl-labels"><span>0:00.0</span><span id="tlTotal">0:00.0</span></div>
+
+              <div class="transport">
+                <button class="btn btn-primary" id="playBtn">▶ Play clip</button>
+                <div class="readout"><span>Playhead</span><b id="tPlay">0:00.0 / 0:00.0</b></div>
+                <div class="readout"><span>Inside clip</span><b id="tClip">0:00.0 / 0:00.0</b></div>
+              </div>
+
+              <div class="trim-grid">
+                <div>
+                  <label class="field" for="startInput">Start time</label>
+                  <div class="input-row">
+                    <input class="input mono" id="startInput" inputmode="decimal" autocomplete="off">
+                    <button class="btn btn-ghost" id="setStart" title="Use the current playhead position">Set to playhead</button>
+                  </div>
+                </div>
+                <div>
+                  <label class="field" for="endInput">End time</label>
+                  <div class="input-row">
+                    <input class="input mono" id="endInput" inputmode="decimal" autocomplete="off">
+                    <button class="btn btn-ghost" id="setEnd" title="Use the current playhead position">Set to playhead</button>
+                  </div>
+                </div>
+              </div>
+              <p class="hint">Type times like 1:05, 1:05.5 or 65.5, then press Enter.</p>
+
+              <div class="clip-status">
+                <span>Clip length</span><b id="clipDur">0.0s</b><span class="badge grey" id="clipStatus">-</span>
+              </div>
+              <p class="warn" id="clipMsg" hidden></p>
+              <p class="err" id="trimMsg" hidden></p>
+
+              <div class="crop-controls">
+                <div>
+                  <div class="range-head"><span>Zoom</span><b id="zoomLabel">1.00×</b></div>
+                  <input type="range" id="zoomRange" min="1" max="3" step="0.01" value="1">
+                </div>
+                <div>
+                  <div class="range-head"><span>Horizontal position</span><b id="xLabel">50%</b></div>
+                  <input type="range" id="xRange" min="0" max="100" step="1" value="50">
+                </div>
+                <div>
+                  <div class="range-head"><span>Vertical position</span><b id="yLabel">50%</b></div>
+                  <input type="range" id="yRange" min="0" max="100" step="1" value="50">
+                </div>
+                <p class="hint" id="cropHint" style="margin:0"></p>
+                <p class="hint" style="margin:0">The full video starts fitted inside the 9:16 frame. Increase Zoom to fill more of the frame, then drag the preview or adjust position to choose exactly what stays visible. This is a fixed crop, not an animated effect.</p>
+                <div><button class="btn btn-ghost" id="resetCrop">Reset framing</button></div>
+              </div>
+
+              <div class="section-title" style="margin:24px 0 10px">
+                <h2 style="font-size:16px">Your Shorts</h2>
+                <span class="badge grey" id="clipCount">0 of 3</span>
+              </div>
+              <div id="clipList"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== STEP 4: CAPTIONS (SUBTITLES) ===== -->
+        <div class="card editor" id="captionCard" hidden>
+          <h2>4. Captions</h2>
+          <p class="sub">Edit subtitles with timestamps and see them live on the 9:16 preview above. Caption times follow the full video's timeline.</p>
+
+          <div class="grid grid-2" style="align-items:start">
+            <!-- Left: editable subtitle list -->
+            <div>
+              <div class="cap-toolbar">
+                <button class="btn btn-ghost" id="addCue">+ Add caption at playhead</button>
+                <button class="btn btn-ghost" id="clearCues">Clear all</button>
+                <span class="badge grey" id="cueCount">0 captions</span>
+              </div>
+              <div id="cueList" class="cue-list"></div>
+            </div>
+
+            <!-- Right: style, transcript import, suggestions, SRT -->
+            <div>
+              <h3 class="mini-title">Caption style</h3>
+              <div class="style-grid">
+                <div>
+                  <div class="range-head"><span>Font size</span><b id="capSizeLabel">56</b></div>
+                  <input type="range" id="capSize" min="24" max="100" step="2" value="56">
+                </div>
+                <div class="style-row">
+                  <div><label class="field" for="capColor">Font color</label><input type="color" id="capColor" value="#ffffff"></div>
+                  <div><label class="field" for="capBg">Background color</label><input type="color" id="capBg" value="#000000"></div>
+                </div>
+                <div>
+                  <div class="range-head"><span>Background opacity</span><b id="capBgOpacityLabel">60%</b></div>
+                  <input type="range" id="capBgOpacity" min="0" max="100" step="5" value="60">
+                </div>
+                <label class="check"><input type="checkbox" id="capBold" checked> Bold text</label>
+                <div>
+                  <label class="field">Caption position</label>
+                  <div class="chips" data-group="cappos">
+                    <button class="chip" data-val="15">Top</button>
+                    <button class="chip" data-val="50">Middle</button>
+                    <button class="chip active" data-val="80">Bottom</button>
+                  </div>
+                  <div class="range-head" style="margin-top:12px"><span>Fine position (from top)</span><b id="capPosLabel">80%</b></div>
+                  <input type="range" id="capPos" min="8" max="92" step="1" value="80">
+                </div>
+              </div>
+
+              <h3 class="mini-title">Transcript</h3>
+              <p class="hint" style="margin-top:0">Import SRT, VTT or lines like <code>0:12 your text</code>. Plain text without timestamps can be split across the selected clip.</p>
+              <textarea class="input" id="transcriptText" rows="5" placeholder="Paste a transcript here..."></textarea>
+              <div class="cap-toolbar">
+                <button class="btn btn-ghost" id="importPasted">Import with timestamps</button>
+                <button class="btn btn-ghost" id="splitPlain">Split plain text across clip</button>
+                <button class="btn btn-ghost" id="importFileBtn">Import file...</button>
+                <input type="file" id="transcriptFile" accept=".srt,.vtt,.txt,text/plain,text/vtt" hidden>
+              </div>
+
+              <h3 class="mini-title">Suggest moments <span class="badge grey">from transcript, not AI</span></h3>
+              <p class="hint" style="margin-top:0">Ranks stretches of your transcript by speech density, questions, exclamations and your keywords. It cannot understand meaning, so always check the result.</p>
+              <input class="input" id="kwInput" placeholder="Optional keywords, comma separated">
+              <div class="cap-toolbar">
+                <button class="btn btn-primary" id="suggestBtn">Suggest moments</button>
+                <button class="btn btn-ghost" id="addAllSuggest">Add all to Shorts list</button>
+              </div>
+              <div id="suggestList"></div>
+
+              <h3 class="mini-title">Subtitle export</h3>
+              <div class="cap-toolbar" style="margin-top:0">
+                <button class="btn btn-ghost" id="srtClip">Download SRT (selected clip)</button>
+                <button class="btn btn-ghost" id="srtAll">Download SRT (full video)</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== VIEW: MY PROJECTS ========== -->
+      <section class="view" id="view-projects">
+        <div class="card">
+          <h2>My Projects</h2>
+          <p class="sub">Saved only in this browser (LocalStorage).</p>
+          <div id="projectsTable"></div>
+        </div>
+      </section>
+
+      <!-- ========== VIEW: SETTINGS ========== -->
+      <section class="view" id="view-settings">
+        <div class="grid grid-2">
+          <div class="card">
+            <h2>Default preferences</h2>
+            <p class="sub">Saved in your browser and used as defaults for new projects.</p>
+
+            <div class="form-row">
+              <label class="field" for="setCount">Default number of Shorts</label>
+              <select class="input" id="setCount">
+                <option value="3">3</option><option value="5">5</option><option value="10">10</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label class="field" for="setRes">Default resolution</label>
+              <select class="input" id="setRes">
+                <option value="720p">720p</option><option value="1080p">1080p</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label class="field" for="setDur">Default duration (seconds)</label>
+              <input class="input" id="setDur" type="number" min="15" max="60" step="5" value="30">
+            </div>
+            <button class="btn btn-primary" id="saveSettings">Save Settings</button>
+          </div>
+
+          <div class="card">
+            <h2>Data</h2>
+            <p class="sub">Everything lives on your device. Clearing it cannot be undone.</p>
+            <button class="btn btn-ghost" id="clearData">Clear all projects &amp; settings</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== VIEW: HELP ========== -->
+      <section class="view" id="view-help">
+        <div class="card">
+          <h2>Help &amp; FAQ</h2>
+          <p class="sub">Honest answers about what this tool can and cannot do.</p>
+
+          <div class="faq open"><button>How does SK Viral Clips work?<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+            <div class="answer">You upload a video, choose clip start and end times, add captions, and export vertical 9:16 clips. All processing happens in your browser with free libraries.</div></div>
+          <div class="faq"><button>Is there real AI moment detection?<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+            <div class="answer">Real AI needs a server or paid API, which this free version avoids. Instead you will pick moments yourself, or use a transcript you provide. We will never show fake AI results.</div></div>
+          <div class="faq"><button>Can I clip any YouTube video?<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+            <div class="answer">No. Downloading YouTube videos is not permitted by YouTube's terms and is not possible from a browser anyway. Please upload videos you own or have rights to use.</div></div>
+          <div class="faq"><button>How does MP4 export work?<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+            <div class="answer">Your browser records the cropped, captioned video in real time, so a 30 second Short takes about 30 seconds. Keep the tab open and visible. Chrome, Edge and Safari can save MP4; browsers that cannot (such as Firefox) save WebM instead and the app tells you which you got.</div></div>
+          <div class="faq"><button>Why do I have to pick the video again when opening a project?<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+            <div class="answer">Browser storage is far too small for video files, so projects save only your clips, captions and style. Choose the same video file again and everything is restored.</div></div>
+          <div class="faq"><button>Where are my projects stored?<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+            <div class="answer">Only in your browser's LocalStorage. They are not uploaded anywhere and will be lost if you clear site data or switch browsers.</div></div>
+        </div>
+      </section>
+
+    </main>
+    <footer class="site-credit" style="margin:24px 22px 18px;padding:18px 20px;border:1px solid var(--border);border-radius:16px;background:var(--panel);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px">
+      <div><strong style="display:block;color:var(--text);font-size:14px">Created by SK Iftikhar</strong><span style="color:var(--muted);font-size:12px">SK Viral Clips · Free video editor</span></div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px">
+        <a class="btn btn-ghost" href="https://www.facebook.com/profile.php?id=61594947639441" target="_blank" rel="noopener noreferrer" aria-label="Facebook profile">Facebook ↗</a>
+        <a class="btn btn-ghost" href="https://www.youtube.com/@RoblivoX-01" target="_blank" rel="noopener noreferrer" aria-label="YouTube channel">YouTube ↗</a>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<!-- Step 5: export progress + preview before download -->
+<div class="modal" id="exportModal" hidden role="dialog" aria-modal="true" aria-labelledby="expTitle">
+  <div class="modal-box">
+    <h2 id="expTitle">Exporting...</h2>
+    <p class="sub" id="expSub" style="margin-bottom:0"></p>
+    <div class="progress" id="expProgress"><div id="expBar"></div></div>
+    <p class="hint" id="expNote" style="margin-top:0"></p>
+    <div id="expResult" hidden>
+      <video id="expVideo" controls playsinline></video>
+      <div class="meta">
+        <div class="meta-item"><span>File</span><b id="expName">-</b></div>
+        <div class="meta-item"><span>Format</span><b id="expFormat">-</b></div>
+        <div class="meta-item"><span>Size</span><b id="expSize">-</b></div>
+        <div class="meta-item"><span>Resolution</span><b id="expRes">-</b></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="expClose">Cancel export</button>
+      <a class="btn btn-primary" id="expDownload" hidden>Download</a>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================================================
+   SK VIRAL CLIPS - STEP 1 JAVASCRIPT
+   Handles navigation, tabs, option chips, FAQ, settings
+   and reading project stats from LocalStorage.
+   ===================================================== */
+
+// ---------- Storage keys ----------
+const STORE = { projects: 'skvc_projects', settings: 'skvc_settings' };
+
+// ---------- Small helpers ----------
+const $  = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+
+// Safe LocalStorage read/write (handles private mode or corrupt data)
+function load(key, fallback) {
+  try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
+  catch { return fallback; }
+}
+function save(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); return true; }
+  catch { toast('Could not save: browser storage is unavailable.'); return false; }
+}
+
+// Escape text before putting it in HTML
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// Toast notification
+let toastTimer;
+function toast(msg) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ---------- Navigation ----------
+const titles = { dashboard:'Dashboard', create:'Create Shorts', projects:'My Projects', settings:'Settings', help:'Help' };
+
+function showView(name) {
+  $$('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
+  $$('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.view === name));
+  $('#pageTitle').textContent = titles[name];
+  if (name !== 'create') videoEl.pause(); // do not keep playing in the background
+  closeSidebar();
+  window.scrollTo({ top: 0 });
+  if (name === 'dashboard' || name === 'projects') renderProjects();
+}
+
+$$('.nav-btn').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
+$$('[data-goto]').forEach(b => b.addEventListener('click', () => showView(b.dataset.goto)));
+
+// ---------- Mobile sidebar ----------
+function openSidebar()  { $('#sidebar').classList.add('open');    $('#overlay').classList.add('show'); }
+function closeSidebar() { $('#sidebar').classList.remove('open'); $('#overlay').classList.remove('show'); }
+$('#menuBtn').addEventListener('click', openSidebar);
+$('#overlay').addEventListener('click', closeSidebar);
+
+// ---------- Input tabs (Upload / YouTube) ----------
+$$('#inputTabs .tab').forEach(tab => tab.addEventListener('click', () => {
+  $$('#inputTabs .tab').forEach(t => t.classList.toggle('active', t === tab));
+  $$('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + tab.dataset.tab));
+}));
+
+// ---------- Option chips (count / resolution) ----------
+$$('.chips[data-group]').forEach(group => {
+  group.addEventListener('click', e => {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    $$('.chip', group).forEach(c => c.classList.toggle('active', c === chip));
+  });
+});
+
+// ---------- Duration slider ----------
+const durRange = $('#durRange');
+durRange.addEventListener('input', () => { $('#durLabel').textContent = durRange.value + 's'; });
+
+// ---------- FAQ accordion ----------
+$$('.faq button').forEach(btn => btn.addEventListener('click', () => btn.parentElement.classList.toggle('open')));
+
+// ---------- Projects: stats + lists (real data from LocalStorage) ----------
+function renderProjects() {
+  const projects = load(STORE.projects, []);
+  const weekAgo  = Date.now() - 7 * 24 * 60 * 60 * 1000;
+
+  // Statistics
+  $('#statProjects').textContent = projects.length;
+  // "Shorts created" counts Shorts that were really exported (MP4/WebM rendered)
+  $('#statShorts').textContent   = projects.reduce((n, p) => n + (p.exports || 0), 0);
+  $('#statRecent').textContent   = projects.filter(p => p.created >= weekAgo).length;
+
+  // Empty state shared by both lists
+  const emptyHtml = `
+    <div class="empty">
+      <svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      <p>No projects yet. Start by creating your first Shorts project.</p>
+      <button class="btn btn-primary" data-goto="create">Create Shorts</button>
+    </div>`;
+
+  if (!projects.length) {
+    $('#recentList').innerHTML = emptyHtml;
+    $('#projectsTable').innerHTML = emptyHtml;
+    $$('[data-goto]').forEach(b => b.onclick = () => showView(b.dataset.goto));
+    return;
+  }
+
+  const sorted = [...projects].sort((a, b) => b.created - a.created);
+  const rows = list => list.map(p => `
+    <tr>
+      <td><b>${esc(p.name)}</b></td>
+      <td>${new Date(p.created).toLocaleDateString()}</td>
+      <td>${p.clipCount || 0}</td>
+      <td><span class="badge ${p.status === 'Exported' ? 'green' : 'grey'}">${esc(p.status || 'Draft')}</span></td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-ghost" data-open="${esc(p.id)}">Open</button>
+        <button class="btn btn-ghost" data-del="${esc(p.id)}">Delete</button>
+      </td>
+    </tr>`).join('');
+
+  const table = list => `
+    <div class="card table-wrap"><table>
+      <thead><tr><th>Name</th><th>Created</th><th>Clips</th><th>Status</th><th></th></tr></thead>
+      <tbody>${rows(list)}</tbody>
+    </table></div>`;
+
+  $('#recentList').innerHTML    = table(sorted.slice(0, 5));
+  $('#projectsTable').innerHTML = table(sorted);
+
+  // Delete buttons
+  $$('[data-del]').forEach(btn => btn.onclick = () => {
+    if (!confirm('Delete this project? This cannot be undone.')) return;
+    if (currentProjectId === btn.dataset.del) currentProjectId = null; // editor no longer linked to it
+    save(STORE.projects, load(STORE.projects, []).filter(p => p.id !== btn.dataset.del));
+    renderProjects();
+    toast('Project deleted.');
+  });
+
+  // Open buttons (Step 6): reload clips, captions and style; the video file must be chosen again
+  $$('[data-open]').forEach(btn => btn.onclick = () => openProject(btn.dataset.open));
+}
+
+// ---------- Settings ----------
+function applySettings() {
+  const s = load(STORE.settings, { count: '3', res: '720p', dur: 30 });
+  $('#setCount').value = s.count;
+  $('#setRes').value   = s.res;
+  $('#setDur').value   = s.dur;
+
+  // Apply as defaults on the Create Shorts page
+  $$('.chips[data-group="count"] .chip').forEach(c => c.classList.toggle('active', c.dataset.val === String(s.count)));
+  $$('.chips[data-group="res"] .chip').forEach(c => c.classList.toggle('active', c.dataset.val === s.res));
+  durRange.value = s.dur;
+  $('#durLabel').textContent = s.dur + 's';
+}
+
+$('#saveSettings').addEventListener('click', () => {
+  let dur = parseInt($('#setDur').value, 10);
+  if (isNaN(dur)) dur = 30;
+  dur = Math.min(60, Math.max(15, dur)); // keep within 15 to 60 seconds
+  const ok = save(STORE.settings, { count: $('#setCount').value, res: $('#setRes').value, dur });
+  if (ok) { applySettings(); toast('Settings saved.'); }
+});
+
+$('#clearData').addEventListener('click', () => {
+  if (!confirm('Delete all projects and settings stored in this browser?')) return;
+  try { localStorage.removeItem(STORE.projects); localStorage.removeItem(STORE.settings); } catch {}
+  applySettings();
+  renderProjects();
+  toast('All local data cleared.');
+});
+
+// =====================================================
+// STEP 2: VIDEO UPLOAD + PREVIEW
+// =====================================================
+
+// The currently loaded video. Later steps (trim, export) will read this.
+// Shape: { file, url, duration, width, height }
+let currentVideo = null;
+
+const ALLOWED_EXT = ['mp4', 'webm', 'mov'];
+const WARN_SIZE   = 500 * 1024 * 1024; // browser processing gets heavy above this
+
+const dropzone = $('#dropzone');
+const fileInput = $('#fileInput');
+const previewEl = $('#preview');
+const videoEl   = $('#previewVideo');
+
+// Format seconds as m:ss or h:mm:ss
+function fmtTime(sec) {
+  sec = Math.round(sec);
+  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+  const pad = n => String(n).padStart(2, '0');
+  return h ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
+}
+
+// Format bytes as KB / MB / GB
+function fmtSize(bytes) {
+  if (bytes >= 1073741824) return (bytes / 1073741824).toFixed(2) + ' GB';
+  if (bytes >= 1048576)    return (bytes / 1048576).toFixed(1) + ' MB';
+  return Math.max(1, Math.round(bytes / 1024)) + ' KB';
+}
+
+// Release the old video from memory
+function clearVideo() {
+  if (currentVideo) URL.revokeObjectURL(currentVideo.url);
+  currentVideo = null;
+  destroyEditor(); // Step 3: hide the editor and reset its state
+  videoEl.removeAttribute('src');
+  videoEl.load();
+  previewEl.hidden = true;
+  dropzone.hidden = false;
+  fileInput.value = '';
+}
+
+// Validate, then load a chosen file
+function handleFile(file) {
+  if (!file) return;
+
+  // Check type by MIME and by extension (MOV often has an empty or odd MIME)
+  const ext = file.name.split('.').pop().toLowerCase();
+  const typeOk = file.type.startsWith('video/') || ALLOWED_EXT.includes(ext);
+  if (!typeOk || !ALLOWED_EXT.includes(ext)) {
+    toast('Unsupported file. Please choose an MP4, WebM or MOV video.');
+    return;
+  }
+  if (file.size === 0) { toast('That file is empty.'); return; }
+
+  clearVideo();
+  const url = URL.createObjectURL(file);
+
+  // Wait for metadata so we can show real duration and resolution
+  videoEl.onloadedmetadata = () => {
+    // Some files (e.g. WebM recorded in a browser) report no usable duration.
+    if (!isFinite(videoEl.duration) || videoEl.duration <= 0) {
+      URL.revokeObjectURL(url);
+      clearVideo();
+      toast('Could not read this video\'s duration. Please convert it to MP4 and try again.');
+      return;
+    }
+    currentVideo = { file, url, duration: videoEl.duration, width: videoEl.videoWidth, height: videoEl.videoHeight };
+    $('#metaName').textContent     = file.name;
+    $('#metaName').title           = file.name;
+    $('#metaDuration').textContent = isFinite(videoEl.duration) ? fmtTime(videoEl.duration) : 'Unknown';
+    $('#metaSize').textContent     = fmtSize(file.size);
+    $('#metaRes').textContent      = videoEl.videoWidth ? `${videoEl.videoWidth}×${videoEl.videoHeight}` : 'Audio only?';
+
+    // Helpful warnings (never blocking)
+    const warns = [];
+    if (isFinite(videoEl.duration) && videoEl.duration < 15) warns.push('This video is shorter than 15 seconds, so full-length Shorts will not fit.');
+    if (file.size > WARN_SIZE) warns.push('Large file: export may be slow or run out of memory in your browser.');
+    $('#metaWarn').textContent = warns.join(' ');
+    $('#metaWarn').hidden = !warns.length;
+
+    dropzone.hidden = true;
+    previewEl.hidden = false;
+    initEditor(); // Step 3: show the trim and crop editor
+    toast('Video loaded.');
+  };
+
+  // Happens when the browser cannot decode the file (e.g. some MOV codecs)
+  videoEl.onerror = () => {
+    URL.revokeObjectURL(url);
+    videoEl.removeAttribute('src');
+    toast('Your browser cannot play this file. Try converting it to MP4 (H.264) or WebM.');
+  };
+
+  videoEl.src = url;
+}
+
+// Events: choose button, input change, drag and drop
+$('#chooseFile').addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', () => handleFile(fileInput.files[0]));
+$('#removeVideo').addEventListener('click', () => { clearVideo(); toast('Video removed.'); });
+
+['dragenter', 'dragover'].forEach(ev => dropzone.addEventListener(ev, e => {
+  e.preventDefault(); dropzone.classList.add('drag');
+}));
+['dragleave', 'drop'].forEach(ev => dropzone.addEventListener(ev, e => {
+  e.preventDefault(); dropzone.classList.remove('drag');
+}));
+dropzone.addEventListener('drop', e => handleFile(e.dataTransfer.files[0]));
+
+// Stop the browser from opening a file dropped outside the drop area
+['dragover', 'drop'].forEach(ev => window.addEventListener(ev, e => e.preventDefault()));
+
+// Free memory when leaving the page
+window.addEventListener('beforeunload', () => { if (currentVideo) URL.revokeObjectURL(currentVideo.url); });
+
+// =====================================================
+// STEP 2: YOUTUBE LINK CHECK (validation + public info only)
+// =====================================================
+
+// Pull the 11-character video ID out of the common YouTube URL formats.
+// Returns null if the URL is not a valid YouTube video link.
+function parseYouTubeId(input) {
+  let u;
+  try { u = new URL(input.trim()); } catch { return null; }
+  const host = u.hostname.replace(/^www\.|^m\.|^music\./, '');
+  let id = null;
+
+  if (host === 'youtu.be') {
+    id = u.pathname.slice(1).split('/')[0];
+  } else if (host === 'youtube.com' || host === 'youtube-nocookie.com') {
+    if (u.pathname === '/watch') id = u.searchParams.get('v');
+    else {
+      const m = u.pathname.match(/^\/(shorts|embed|live|v)\/([^/?]+)/);
+      if (m) id = m[2];
+    }
+  }
+  return id && /^[\w-]{11}$/.test(id) ? id : null;
+}
+
+$('#ytCheck').addEventListener('click', async () => {
+  const out = $('#ytResult');
+  const btn = $('#ytCheck');
+  const raw = $('#ytUrl').value;
+
+  if (!raw.trim()) { out.innerHTML = '<p class="err">Please paste a YouTube link first.</p>'; return; }
+
+  const id = parseYouTubeId(raw);
+  if (!id) { out.innerHTML = '<p class="err">That does not look like a valid YouTube video link.</p>'; return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Checking...';
+  out.innerHTML = '';
+
+  const watchUrl = 'https://www.youtube.com/watch?v=' + id;
+  const thumb = `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
+
+  try {
+    // YouTube's public oEmbed endpoint: no API key, returns title and channel only
+    const res = await fetch('https://www.youtube.com/oembed?format=json&url=' + encodeURIComponent(watchUrl));
+    if (!res.ok) throw new Error(res.status === 404 || res.status === 401 ? 'private-or-missing' : 'http-' + res.status);
+    const data = await res.json();
+
+    out.innerHTML = `
+      <div class="yt-card">
+        <img src="${esc(thumb)}" alt="Video thumbnail">
+        <div>
+          <b>${esc(data.title)}</b>
+          <span>${esc(data.author_name)}</span>
+          <span style="margin-top:6px"><a href="${esc(watchUrl)}" target="_blank" rel="noopener" style="color:var(--red-2)">Open on YouTube</a></span>
+        </div>
+      </div>
+      <p class="warn" style="margin-top:12px">This only shows public info. The video is not downloaded, and YouTube videos cannot be clipped here. To make Shorts, upload a video file you own.</p>`;
+  } catch (err) {
+    // Network/CORS failure or video unavailable: be honest, still show what we know
+    const unavailable = err.message === 'private-or-missing';
+    out.innerHTML = `
+      <p class="err">${unavailable
+        ? 'This video is private, removed or not embeddable, so no details are available.'
+        : 'Could not load video details (network or browser restriction). The link format is valid.'}</p>
+      <div class="yt-card">
+        <img src="${esc(thumb)}" alt="" onerror="this.style.display='none'">
+        <div><b>Video ID: ${esc(id)}</b><span><a href="${esc(watchUrl)}" target="_blank" rel="noopener" style="color:var(--red-2)">Open on YouTube</a></span></div>
+      </div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Check Link';
+  }
+});
+$('#ytUrl').addEventListener('keydown', e => { if (e.key === 'Enter') $('#ytCheck').click(); });
+
+// =====================================================
+// STEP 3: TRIM, TIMELINE AND 9:16 CROP
+// =====================================================
+
+const MIN_CLIP = 15;  // shortest allowed Short (seconds)
+const MAX_CLIP = 60;  // longest allowed Short (seconds)
+const MIN_GAP  = 0.1; // smallest gap between the two markers while editing
+
+// Editor elements
+const editorCard = $('#editorCard');
+const phoneFrame = $('#phoneFrame');
+const cropCanvas = $('#cropCanvas');
+const cropCtx    = cropCanvas.getContext('2d');
+const tlTrack    = $('#tlTrack');
+const tlRange    = $('#tlRange');
+const tlPlayhead = $('#tlPlayhead');
+const tlStart    = $('#tlStart');
+const tlEnd      = $('#tlEnd');
+const startInput = $('#startInput');
+const endInput   = $('#endInput');
+const playBtn    = $('#playBtn');
+const genBtn     = $('#genBtn');
+const zoomRange  = $('#zoomRange');
+const xRange     = $('#xRange');
+const yRange     = $('#yRange');
+
+// Editor state
+let clip = { start: 0, end: 0 };          // selected part of the video (seconds, 0.1s steps)
+let crop = { zoom: 1, x: 0.5, y: 0.5 };   // zoom 1-3, x/y = position 0-1 inside the available range
+let clips = [];                           // Shorts the user has added to the list
+let clipSeq = 0;                          // id counter for the list
+let clipPlaying = false;                  // true when playback started inside the clip (stops at end)
+let loopId = null;                        // requestAnimationFrame id
+
+// ---------- Small helpers ----------
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+const r1 = t => Math.round(t * 10) / 10;                         // round to 0.1s
+const maxTime = () => Math.floor(currentVideo.duration * 10) / 10; // latest usable time
+
+// Time as m:ss.s (accurate to a tenth of a second)
+function fmtPrecise(sec) {
+  const tenths = Math.round(Math.max(0, sec) * 10);
+  const m = Math.floor(tenths / 600);
+  const s = (tenths % 600) / 10;
+  return m + ':' + (s < 10 ? '0' : '') + s.toFixed(1);
+}
+
+// Parse "65", "65.5", "1:05", "1:05.5" or "1:02:03" into seconds (NaN if invalid)
+function parseTime(str) {
+  str = str.trim();
+  if (/^\d+(\.\d+)?$/.test(str)) return parseFloat(str);
+  const m = str.match(/^(?:(\d+):)?(\d{1,2}):(\d{1,2}(?:\.\d+)?)$/);
+  if (!m) return NaN;
+  return (+(m[1] || 0)) * 3600 + (+m[2]) * 60 + parseFloat(m[3]);
+}
+
+// ---------- Validation ----------
+function validateClip() {
+  const dur = clip.end - clip.start;
+  if (currentVideo.duration < MIN_CLIP - 1e-6)
+    return { ok: false, dur, msg: 'This video is shorter than 15 seconds, so no valid Short can be made from it.' };
+  if (dur < MIN_CLIP - 1e-6)
+    return { ok: false, dur, msg: `Clip is ${dur.toFixed(1)}s. A Short must be at least 15 seconds.` };
+  if (dur > MAX_CLIP + 1e-6)
+    return { ok: false, dur, msg: `Clip is ${dur.toFixed(1)}s. A Short can be at most 60 seconds.` };
+  return { ok: true, dur, msg: '' };
+}
+
+// Keep a marker inside the video. In "strict" mode (dragging) it also keeps the
+// clip length between 15 and 60 seconds, as far as the video allows.
+function clampBound(which, t, strict) {
+  const maxT = maxTime();
+  let lo, hi;
+  if (which === 'start') {
+    lo = 0; hi = Math.min(maxT, clip.end - MIN_GAP);
+    if (strict) { lo = Math.max(lo, clip.end - MAX_CLIP); hi = Math.min(hi, clip.end - MIN_CLIP); }
+    if (lo > hi) { lo = 0; hi = clip.end - MIN_GAP; } // strict range impossible: fall back
+  } else {
+    lo = clip.start + MIN_GAP; hi = maxT;
+    if (strict) { hi = Math.min(hi, clip.start + MAX_CLIP); lo = Math.max(lo, clip.start + MIN_CLIP); }
+    if (lo > hi) { lo = clip.start + MIN_GAP; hi = maxT; }
+  }
+  return r1(clamp(t, lo, hi));
+}
+
+// Move a marker, show the frame at that point, refresh everything
+function setBound(which, t, strict, seek) {
+  clip[which] = clampBound(which, t, strict);
+  hideTrimError();
+  if (seek) videoEl.currentTime = which === 'end' ? Math.max(clip.start, clip.end - 0.05) : clip.start;
+  updateAll();
+}
+
+// ---------- Crop maths ----------
+// Returns the source rectangle that fills the 9:16 frame, or null if no frame yet
+// `c` is a crop state {zoom, x, y}; it defaults to the editor's current crop
+function cropRect(c = crop) {
+  const sw = videoEl.videoWidth, sh = videoEl.videoHeight;
+  if (!sw || !sh) return null;
+  const scale = Math.min(cropCanvas.width / sw, cropCanvas.height / sh) * c.zoom;
+  const dw = sw * scale, dh = sh * scale;
+  return { sw, sh, dw, dh,
+    overflowX: Math.max(0, dw - cropCanvas.width),
+    overflowY: Math.max(0, dh - cropCanvas.height) };
+}
+
+// Paint a proportional, contain-first 9:16 frame. Zoom and position are fixed
+// for the whole Short; no animated zoom is applied.
+function paintFrame(ctx, w, h, cs, t) {
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, w, h);
+  if (videoEl.readyState >= 2 && videoEl.videoWidth && videoEl.videoHeight) {
+    const scale = Math.min(w / videoEl.videoWidth, h / videoEl.videoHeight) * (cs.zoom || 1);
+    const dw = videoEl.videoWidth * scale, dh = videoEl.videoHeight * scale;
+    const dx = (w - dw) * (cs.x ?? 0.5);
+    const dy = (h - dh) * (cs.y ?? 0.5);
+    ctx.save();
+    ctx.beginPath(); ctx.rect(0, 0, w, h); ctx.clip();
+    ctx.drawImage(videoEl, dx, dy, dw, dh);
+    ctx.restore();
+  }
+  drawCaption(ctx, w, h, t);
+}
+
+// Draw the current video frame, cropped to 9:16, with captions, into the preview canvas
+function drawCrop() {
+  const t = videoEl.currentTime || 0;
+  paintFrame(cropCtx, cropCanvas.width, cropCanvas.height, crop, t);
+  // While the user adjusts the caption style, show a sample if no caption is active here
+  if (Date.now() < sampleUntil && !activeCue(t)) drawCaptionText(cropCtx, cropCanvas.width, cropCanvas.height, 'Sample caption');
+}
+
+// Sync the crop sliders with the crop state; disable sliders that would do nothing
+function syncCropControls() {
+  zoomRange.value = crop.zoom;
+  xRange.value = Math.round(crop.x * 100);
+  yRange.value = Math.round(crop.y * 100);
+  $('#zoomLabel').textContent = crop.zoom.toFixed(2) + '×';
+  $('#xLabel').textContent = Math.round(crop.x * 100) + '%';
+  $('#yLabel').textContent = Math.round(crop.y * 100) + '%';
+  const rc = cropRect();
+  const canX = !rc || rc.overflowX >= 1;
+  const canY = !rc || rc.overflowY >= 1;
+  xRange.disabled = !canX;
+  yRange.disabled = !canY;
+  const notes = [];
+  if (!canX || !canY) notes.push('Increase Zoom to move the picture in that direction.');
+  $('#cropHint').textContent = notes.join(' ');
+}
+
+// ---------- UI updates ----------
+function showTrimError(msg) { const e = $('#trimMsg'); e.textContent = msg; e.hidden = false; }
+function hideTrimError()    { $('#trimMsg').hidden = true; }
+
+// Timeline, time inputs and validation display
+function updateTrimUI() {
+  const d = currentVideo.duration;
+  const pct = t => (t / d) * 100;
+  tlStart.style.left = pct(clip.start) + '%';
+  tlEnd.style.left   = pct(clip.end) + '%';
+  tlRange.style.left  = pct(clip.start) + '%';
+  tlRange.style.width = pct(clip.end - clip.start) + '%';
+  tlStart.setAttribute('aria-valuenow', clip.start);
+  tlEnd.setAttribute('aria-valuenow', clip.end);
+
+  startInput.value = fmtPrecise(clip.start);
+  endInput.value   = fmtPrecise(clip.end);
+
+  const v = validateClip();
+  tlRange.classList.toggle('bad', !v.ok);
+  $('#clipDur').textContent = v.dur.toFixed(1) + 's';
+  const badge = $('#clipStatus');
+  badge.textContent = v.ok ? 'Valid (15 to 60s)' : 'Invalid';
+  badge.className = 'badge ' + (v.ok ? 'green' : '');
+  $('#clipMsg').textContent = v.msg;
+  $('#clipMsg').hidden = v.ok;
+}
+
+// Playhead and time readouts
+function updateTransport() {
+  if (!currentVideo) return;
+  const d = currentVideo.duration, t = videoEl.currentTime || 0;
+  tlPlayhead.style.left = (clamp(t / d, 0, 1) * 100) + '%';
+  $('#tPlay').textContent = fmtPrecise(t) + ' / ' + fmtPrecise(d);
+
+  const len = clip.end - clip.start;
+  let rel;
+  if (t < clip.start - 0.05)    rel = 'Before clip';
+  else if (t > clip.end + 0.05) rel = 'After clip';
+  else rel = fmtPrecise(clamp(t - clip.start, 0, len)) + ' / ' + fmtPrecise(len);
+  $('#tClip').textContent = rel;
+
+  playBtn.textContent = videoEl.paused ? '▶ Play clip' : '⏸ Pause';
+}
+
+// Generate button + hint under it
+function maxClips() {
+  const chip = $('.chips[data-group="count"] .chip.active');
+  return chip ? parseInt(chip.dataset.val, 10) : 3;
+}
+function updateGenerate() {
+  const hint = $('#genHint');
+  if (!currentVideo) { genBtn.disabled = true; hint.textContent = 'Add a video first.'; return; }
+  const v = validateClip();
+  const max = maxClips();
+  if (!v.ok)                      { genBtn.disabled = true;  hint.textContent = v.msg; }
+  else if (clips.length >= max)   { genBtn.disabled = true;  hint.textContent = `You already have ${max} Shorts. Delete one or choose a higher number.`; }
+  else                            { genBtn.disabled = false; hint.textContent = 'Automatically finds separate moments across the full video and adds them to your Shorts list.'; }
+}
+
+function updateAll() {
+  if (!currentVideo) return;
+  updateTrimUI();
+  updateTransport();
+  drawCrop();
+  updateGenerate();
+}
+
+// ---------- Editor lifecycle ----------
+function initEditor() {
+  const target = parseInt(durRange.value, 10) || 30;
+  const maxT = maxTime();
+  clip.start = 0;
+  clip.end = Math.min(maxT, target);
+  crop = { zoom: 1, x: 0.5, y: 0.5 };
+  clips = [];
+  $('#tlTotal').textContent = fmtPrecise(currentVideo.duration);
+  hideTrimError();
+  editorCard.hidden = false;
+  syncCropControls();
+  renderClips();
+  updateAll();
+
+  // Step 4 + 6: captions card, fresh caption list, new (unsaved) project
+  cues = [];
+  suggestions = [];
+  currentProjectId = null;
+  captionCard.hidden = false;
+  $('#projName').value = currentVideo.file.name.replace(/\.[^.]+$/, '').slice(0, 80);
+  renderCues();
+  renderSuggestions();
+  syncStyleControls();
+
+  // If the user clicked "Open" on a saved project, apply it to this video now
+  if (pendingProject) {
+    const p = pendingProject;
+    pendingProject = null;
+    $('#pendingBanner').hidden = true;
+    applyProject(p);
+  }
+}
+
+function destroyEditor() {
+  clipPlaying = false;
+  if (loopId) { cancelAnimationFrame(loopId); loopId = null; }
+  clips = [];
+  cues = [];
+  suggestions = [];
+  currentProjectId = null;
+  editorCard.hidden = true;
+  captionCard.hidden = true;
+  renderClips();
+  renderCues();
+  renderSuggestions();
+  updateGenerate();
+}
+
+// ---------- Playback (stops exactly at the clip end) ----------
+function playClip() {
+  if (!currentVideo) return;
+  const t = videoEl.currentTime;
+  if (t < clip.start - 0.05 || t >= clip.end - 0.05) videoEl.currentTime = clip.start;
+  videoEl.play().catch(() => toast('The browser blocked playback. Please press play again.'));
+}
+
+playBtn.addEventListener('click', () => { videoEl.paused ? playClip() : videoEl.pause(); });
+
+// Frame-by-frame loop while playing: moves the playhead, redraws the crop, enforces the clip end
+function startLoop() {
+  if (loopId) return;
+  const tick = () => {
+    if (!currentVideo || videoEl.paused) { loopId = null; if (currentVideo) { updateTransport(); drawCrop(); } return; }
+    if (clipPlaying && !exporting && videoEl.currentTime >= clip.end) {
+      videoEl.pause();
+      videoEl.currentTime = clip.end;
+      clipPlaying = false;
+    }
+    updateTransport();
+    drawCrop();
+    loopId = requestAnimationFrame(tick);
+  };
+  loopId = requestAnimationFrame(tick);
+}
+
+videoEl.addEventListener('play', () => {
+  if (!currentVideo) return;
+  // Only stop at the clip end if playback began inside the clip
+  clipPlaying = videoEl.currentTime >= clip.start - 0.05 && videoEl.currentTime < clip.end;
+  startLoop();
+  updateTransport();
+});
+['pause', 'seeked', 'loadeddata', 'timeupdate'].forEach(ev =>
+  videoEl.addEventListener(ev, () => { if (currentVideo && (videoEl.paused || ev !== 'timeupdate')) { updateTransport(); drawCrop(); } })
+);
+
+// ---------- Timeline: draggable markers ----------
+let draggingHandle = null;
+
+function timeFromPointer(e) {
+  const r = tlTrack.getBoundingClientRect();
+  return clamp((e.clientX - r.left) / r.width, 0, 1) * currentVideo.duration;
+}
+
+[[tlStart, 'start'], [tlEnd, 'end']].forEach(([el, which]) => {
+  el.addEventListener('pointerdown', e => {
+    if (!currentVideo) return;
+    e.preventDefault();
+    e.stopPropagation();          // do not let the track treat this as a seek
+    videoEl.pause();
+    draggingHandle = which;
+    el.setPointerCapture(e.pointerId);
+    el.classList.add('dragging');
+  });
+  el.addEventListener('pointermove', e => {
+    if (draggingHandle !== which) return;
+    setBound(which, timeFromPointer(e), true, true);
+  });
+  const stop = () => { draggingHandle = null; el.classList.remove('dragging'); };
+  el.addEventListener('pointerup', stop);
+  el.addEventListener('pointercancel', stop);
+
+  // Keyboard: arrows move 0.1s, Shift+arrows move 1s
+  el.addEventListener('keydown', e => {
+    if (!currentVideo || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return;
+    e.preventDefault();
+    const step = (e.shiftKey ? 1 : 0.1) * (e.key === 'ArrowLeft' ? -1 : 1);
+    videoEl.pause();
+    setBound(which, clip[which] + step, true, true);
+  });
+});
+
+// ---------- Timeline: click or drag on the track to move the playhead ----------
+let scrubbing = false;
+tlTrack.addEventListener('pointerdown', e => {
+  if (!currentVideo) return;
+  scrubbing = true;
+  tlTrack.setPointerCapture(e.pointerId);
+  videoEl.currentTime = timeFromPointer(e);
+  updateTransport();
+});
+tlTrack.addEventListener('pointermove', e => {
+  if (!scrubbing) return;
+  videoEl.currentTime = timeFromPointer(e);
+  updateTransport();
+});
+['pointerup', 'pointercancel'].forEach(ev => tlTrack.addEventListener(ev, () => { scrubbing = false; }));
+
+// ---------- Typed start / end times ----------
+function commitTimeInput(which, input) {
+  const t = parseTime(input.value);
+  if (isNaN(t)) {
+    updateAll();
+    showTrimError('Enter a time like 1:05, 1:05.5 or 65.5.');
+    return;
+  }
+  const v = r1(clamp(t, 0, maxTime()));
+  if (which === 'start' && v > clip.end - MIN_GAP + 1e-9) { updateAll(); showTrimError('Start time must be before the end time.'); return; }
+  if (which === 'end' && v < clip.start + MIN_GAP - 1e-9) { updateAll(); showTrimError('End time must be after the start time.'); return; }
+  clip[which] = v;
+  hideTrimError();
+  videoEl.pause();
+  videoEl.currentTime = which === 'end' ? Math.max(clip.start, clip.end - 0.05) : clip.start;
+  updateAll();
+}
+[[startInput, 'start'], [endInput, 'end']].forEach(([input, which]) => {
+  input.addEventListener('change', () => { if (currentVideo) commitTimeInput(which, input); });
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') input.blur(); });
+});
+
+// ---------- "Set to playhead" buttons ----------
+$('#setStart').addEventListener('click', () => {
+  if (!currentVideo) return;
+  const t = clamp(r1(videoEl.currentTime), 0, maxTime());
+  if (t > clip.end - MIN_GAP + 1e-9) { showTrimError('The playhead is after the end time. Move the playhead earlier first.'); return; }
+  clip.start = t; hideTrimError(); updateAll();
+});
+$('#setEnd').addEventListener('click', () => {
+  if (!currentVideo) return;
+  const t = clamp(r1(videoEl.currentTime), 0, maxTime());
+  if (t < clip.start + MIN_GAP - 1e-9) { showTrimError('The playhead is before the start time. Move the playhead later first.'); return; }
+  clip.end = t; hideTrimError(); updateAll();
+});
+
+// ---------- Crop controls ----------
+zoomRange.addEventListener('input', () => { crop.zoom = parseFloat(zoomRange.value); syncCropControls(); drawCrop(); });
+xRange.addEventListener('input',    () => { crop.x = parseInt(xRange.value, 10) / 100; syncCropControls(); drawCrop(); });
+yRange.addEventListener('input',    () => { crop.y = parseInt(yRange.value, 10) / 100; syncCropControls(); drawCrop(); });
+$('#resetCrop').addEventListener('click', () => { crop = { zoom: 1, x: 0.5, y: 0.5 }; syncCropControls(); drawCrop(); });
+
+// Drag the picture inside the 9:16 preview to reposition it
+let pan = null;
+cropCanvas.addEventListener('pointerdown', e => {
+  if (!currentVideo) return;
+  pan = { x: e.clientX, y: e.clientY, cx: crop.x, cy: crop.y };
+  cropCanvas.setPointerCapture(e.pointerId);
+  phoneFrame.classList.add('panning');
+});
+cropCanvas.addEventListener('pointermove', e => {
+  if (!pan) return;
+  const rc = cropRect();
+  if (!rc) return;
+  const box = cropCanvas.getBoundingClientRect();
+  const dx = (e.clientX - pan.x) * (cropCanvas.width / box.width);
+  const dy = (e.clientY - pan.y) * (cropCanvas.height / box.height);
+  // Drag the displayed picture directly; clamp movement to the frame edges.
+  if (rc.overflowX >= 1) crop.x = clamp(pan.cx - dx / rc.overflowX, 0, 1);
+  if (rc.overflowY >= 1) crop.y = clamp(pan.cy - dy / rc.overflowY, 0, 1);
+  syncCropControls();
+  drawCrop();
+});
+const endPan = () => { pan = null; phoneFrame.classList.remove('panning'); };
+cropCanvas.addEventListener('pointerup', endPan);
+cropCanvas.addEventListener('pointercancel', endPan);
+
+// ---------- Step 1 controls that now affect the editor ----------
+// "Short duration" slider: set the end marker to start + chosen length
+durRange.addEventListener('change', () => {
+  if (!currentVideo) return;
+  const dur = parseInt(durRange.value, 10);
+  const maxT = maxTime();
+  let s = clip.start, e = r1(s + dur);
+  if (e > maxT) { e = maxT; s = Math.max(0, r1(maxT - dur)); }
+  clip.start = s; clip.end = e;
+  hideTrimError();
+  videoEl.pause();
+  videoEl.currentTime = clip.start;
+  updateAll();
+});
+// "Number of Shorts" chips: this is the maximum size of the Shorts list
+$('.chips[data-group="count"]').addEventListener('click', () => { renderClips(); updateGenerate(); });
+
+// ---------- Shorts list ----------
+function renderClips() {
+  $('#clipCount').textContent = `${clips.length} of ${maxClips()}`;
+  const box = $('#clipList');
+  if (!clips.length) { box.innerHTML = '<p class="hint" style="margin:0">No Shorts added yet. Pick a valid clip, then press Generate Shorts.</p>'; return; }
+  const type = pickExportType();
+  const expLabel = type ? 'Export ' + type.ext.toUpperCase() : 'Export';
+  const expAttr  = type ? '' : ' disabled title="This browser cannot record video. Use a recent Chrome, Edge or Safari."';
+  box.innerHTML = clips.map((c, i) => `
+    <div class="clip-row">
+      <div class="clip-info">
+        <input class="input clip-title" data-title="${c.id}" value="${esc(c.title)}" maxlength="80" aria-label="Short ${i + 1} title">
+        <span>${fmtPrecise(c.start)} to ${fmtPrecise(c.end)} · ${(c.end - c.start).toFixed(1)}s · zoom ${c.zoom.toFixed(2)}× · ${esc(c.res)}
+          ${c.exported ? '<span class="badge green">Exported</span>' : ''}</span>
+      </div>
+      <div class="clip-actions">
+        <button class="btn btn-ghost" data-prev="${c.id}">Preview</button>
+        <button class="btn btn-primary" data-exp="${c.id}"${expAttr}>${expLabel}</button>
+        <button class="btn btn-ghost" data-srt="${c.id}">SRT</button>
+        <button class="btn btn-ghost" data-rm="${c.id}">Delete</button>
+      </div>
+    </div>`).join('');
+  if (!type) box.insertAdjacentHTML('beforeend', '<p class="warn">Your browser cannot record video, so export is unavailable here. Use a recent Chrome, Edge or Safari.</p>');
+}
+
+$('#clipList').addEventListener('click', e => {
+  const btn = e.target.closest('button');
+  if (!btn || !currentVideo) return;
+  if (btn.dataset.rm) {
+    clips = clips.filter(c => c.id !== Number(btn.dataset.rm));
+    renderClips(); updateGenerate(); markDirty();
+    toast('Short removed.');
+  } else if (btn.dataset.exp) {
+    exportShort(Number(btn.dataset.exp));        // Step 5
+  } else if (btn.dataset.srt) {
+    downloadClipSRT(Number(btn.dataset.srt));    // Step 4
+  } else if (btn.dataset.prev) {
+    const c = clips.find(c => c.id === Number(btn.dataset.prev));
+    if (!c) return;
+    videoEl.pause();
+    clip.start = c.start; clip.end = c.end;
+    crop = { zoom: c.zoom, x: c.x, y: c.y };
+    syncCropControls();
+    videoEl.currentTime = c.start;
+    updateAll();
+    editorCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    playClip();
+  }
+});
+
+// Generate multiple distinct Shorts across the FULL video.
+// If a transcript exists, use the transcript heuristic first; otherwise create
+// evenly distributed, non-overlapping segments. This is not AI viral detection.
+function generateShortsFromVideo() {
+  if (!currentVideo) return;
+  const limit = maxClips();
+  const slots = limit - clips.length;
+  if (slots <= 0) { toast(`Your Shorts list is full (${limit}). Remove a Short or increase the limit.`); return; }
+
+  const total = maxTime();
+  const target = clamp(parseInt(durRange.value, 10) || 30, MIN_CLIP, MAX_CLIP);
+  if (total < MIN_CLIP) { toast('This video is shorter than 15 seconds.'); return; }
+  const length = Math.min(target, MAX_CLIP, total);
+  const picked = [];
+  const overlaps = (a, b) => a.start < b.end - 0.25 && b.start < a.end - 0.25;
+
+  // Transcript-based suggestions are ranked first when captions are available.
+  if (cues.some(c => c.text.trim())) {
+    suggestMoments();
+    for (const item of suggestions) {
+      if (picked.length >= slots) break;
+      if (item.end - item.start >= MIN_CLIP && !picked.some(p => overlaps(p, item)) &&
+          !clips.some(p => overlaps(p, item))) picked.push(item);
+    }
+  }
+
+  // Fill remaining slots with evenly distributed sections from the source video.
+  // The number is reduced when the video is too short to fit non-overlapping clips.
+  const possible = Math.floor((total + 1e-6) / length);
+  const targetCount = Math.min(slots, possible);
+  if (picked.length < targetCount) {
+    const starts = [];
+    if (targetCount === 1) starts.push(Math.max(0, (total - length) / 2));
+    else {
+      const span = Math.max(0, total - length);
+      for (let i = 0; i < targetCount; i++) starts.push(span * i / (targetCount - 1));
+    }
+    for (const start of starts) {
+      if (picked.length >= slots) break;
+      const item = { start: r1(start), end: r1(Math.min(total, start + length)) };
+      if (item.end - item.start < MIN_CLIP) continue;
+      if (picked.some(p => overlaps(p, item)) || clips.some(p => overlaps(p, item))) continue;
+      picked.push({ ...item, title: defaultTitle(item.start, item.end, picked.length + 1) });
+    }
+  }
+
+  picked.sort((a, b) => a.start - b.start);
+  let added = 0;
+  for (const item of picked) {
+    if (clips.length >= limit) break;
+    if (addShort(item.start, item.end, item.title || defaultTitle(item.start, item.end, clips.length + 1), true)) added++;
+  }
+  if (added) toast(`${added} different Shorts added from separate parts of your video. Review them, then press Export on each one.`);
+  else toast('No new non-overlapping clips fit. Try increasing the Shorts limit or choosing a shorter clip duration.');
+}
+
+genBtn.addEventListener('click', () => {
+  if (genBtn.disabled || !currentVideo) return;
+  generateShortsFromVideo();
+});
+
+renderClips();
+updateGenerate();
+
+// =====================================================
+// STEP 4: CAPTIONS (subtitle editor, style, transcript, SRT)
+// =====================================================
+
+const captionCard = $('#captionCard');
+let cues = [];         // [{id, start, end, text}] in seconds on the FULL video timeline
+let cueSeq = 0;
+let suggestions = [];  // results of "Suggest moments"
+let sampleUntil = 0;   // show a sample caption on the preview until this time (ms)
+let capStyle = { size: 56, color: '#ffffff', bg: '#000000', bgOpacity: 60, bold: true, pos: 80 };
+
+const r2 = t => Math.round(t * 100) / 100;
+const sleep = ms => new Promise(res => setTimeout(res, ms));
+const cueById = id => cues.find(c => c.id === Number(id));
+const sortCues = () => cues.sort((a, b) => a.start - b.start || a.end - b.end);
+
+// ---------- Drawing captions (used by the live preview AND the exporter) ----------
+function hexToRgba(hex, a) {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+}
+
+function activeCue(t) { return cues.find(c => c.text.trim() && t >= c.start && t < c.end); }
+
+// Split text into lines that fit maxW (respects manual line breaks)
+function wrapText(ctx, text, maxW) {
+  const lines = [];
+  text.split('\n').forEach(par => {
+    const words = par.split(/\s+/).filter(Boolean);
+    if (!words.length) return;
+    let line = words[0];
+    for (let i = 1; i < words.length; i++) {
+      const test = line + ' ' + words[i];
+      if (ctx.measureText(test).width <= maxW) line = test;
+      else { lines.push(line); line = words[i]; }
+    }
+    lines.push(line);
+  });
+  return lines;
+}
+
+function roundRectPath(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function drawCaption(ctx, w, h, t) {
+  const cue = activeCue(t);
+  if (cue) drawCaptionText(ctx, w, h, cue.text);
+}
+
+// Font size is defined for a 1080px wide frame and scaled to the canvas width
+function drawCaptionText(ctx, w, h, text) {
+  const fs = Math.max(8, Math.round(capStyle.size * (w / 1080)));
+  ctx.font = `${capStyle.bold ? '700' : '400'} ${fs}px system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const lines = wrapText(ctx, text, w * 0.86);
+  if (!lines.length) return;
+
+  const lh = fs * 1.25, padX = fs * 0.45, padY = fs * 0.3;
+  const textW = Math.max(...lines.map(l => ctx.measureText(l).width));
+  const bw = textW + padX * 2, bh = lines.length * lh + padY * 2;
+  const top = clamp(h * capStyle.pos / 100 - bh / 2, h * 0.02, Math.max(h * 0.02, h - bh - h * 0.02));
+
+  if (capStyle.bgOpacity > 0) {
+    ctx.fillStyle = hexToRgba(capStyle.bg, capStyle.bgOpacity / 100);
+    roundRectPath(ctx, (w - bw) / 2, top, bw, bh, fs * 0.25);
+    ctx.fill();
+  }
+  if (capStyle.bgOpacity < 50) { // thin outline keeps text readable without a background
+    ctx.lineWidth = fs * 0.14;
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = 'rgba(0,0,0,.85)';
+    lines.forEach((l, i) => ctx.strokeText(l, w / 2, top + padY + lh * (i + 0.5)));
+  }
+  ctx.fillStyle = capStyle.color;
+  lines.forEach((l, i) => ctx.fillText(l, w / 2, top + padY + lh * (i + 0.5)));
+}
+
+// ---------- Subtitle list editor ----------
+function renderCues() {
+  $('#cueCount').textContent = cues.length + (cues.length === 1 ? ' caption' : ' captions');
+  const box = $('#cueList');
+  const st = box.scrollTop;
+  if (!cues.length) {
+    box.innerHTML = '<p class="hint" style="margin:0">No captions yet. Add one at the playhead, import a transcript, or split plain text across the clip.</p>';
+    return;
+  }
+  box.innerHTML = cues.map(c => `
+    <div class="cue-row" data-cue="${c.id}">
+      <div class="cue-times">
+        <input class="input mono" data-f="start" value="${fmtPrecise(c.start)}" aria-label="Caption start" autocomplete="off">
+        <input class="input mono" data-f="end" value="${fmtPrecise(c.end)}" aria-label="Caption end" autocomplete="off">
+      </div>
+      <textarea class="input" data-f="text" rows="2" aria-label="Caption text">${esc(c.text)}</textarea>
+      <div class="cue-btns">
+        <button class="btn btn-ghost" data-act="seek">Go to</button>
+        <button class="btn btn-ghost" data-act="del">Delete</button>
+      </div>
+    </div>`).join('');
+  box.scrollTop = st;
+}
+
+$('#cueList').addEventListener('input', e => {
+  if (e.target.dataset.f !== 'text') return;
+  const c = cueById(e.target.closest('.cue-row').dataset.cue);
+  if (!c) return;
+  c.text = e.target.value;
+  drawCrop();       // real-time preview
+  markDirty();
+});
+
+$('#cueList').addEventListener('change', e => {
+  const f = e.target.dataset.f;
+  if (f !== 'start' && f !== 'end') return;
+  const c = cueById(e.target.closest('.cue-row').dataset.cue);
+  if (!c || !currentVideo) return;
+  const t = parseTime(e.target.value);
+  if (isNaN(t)) { toast('Enter a time like 1:05 or 65.5.'); renderCues(); return; }
+  const v = r1(clamp(t, 0, maxTime()));
+  const ns = f === 'start' ? v : c.start, ne = f === 'end' ? v : c.end;
+  if (ne - ns < MIN_GAP - 1e-9) { toast('A caption must end after it starts.'); renderCues(); return; }
+  c.start = ns; c.end = ne;
+  sortCues(); renderCues(); drawCrop(); markDirty();
+});
+
+$('#cueList').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-act]');
+  if (!btn || !currentVideo) return;
+  const c = cueById(btn.closest('.cue-row').dataset.cue);
+  if (!c) return;
+  if (btn.dataset.act === 'seek') {
+    videoEl.pause();
+    videoEl.currentTime = Math.min(c.end - 0.01, c.start + 0.01);
+    updateTransport(); drawCrop();
+  } else {
+    cues = cues.filter(x => x !== c);
+    renderCues(); drawCrop(); markDirty();
+  }
+});
+
+$('#addCue').addEventListener('click', () => {
+  if (!currentVideo) return;
+  const maxT = maxTime();
+  const s = r1(videoEl.currentTime);
+  if (s > maxT - 0.2) { toast('Move the playhead earlier to add a caption.'); return; }
+  const c = { id: ++cueSeq, start: s, end: r1(Math.min(maxT, s + 2)), text: '' };
+  cues.push(c); sortCues(); renderCues(); markDirty();
+  const ta = $(`.cue-row[data-cue="${c.id}"] textarea`);
+  if (ta) { ta.scrollIntoView({ block: 'nearest' }); ta.focus(); }
+  toast('Caption added. Type its text, then adjust the times.');
+});
+
+$('#clearCues').addEventListener('click', () => {
+  if (!cues.length) { toast('There are no captions to clear.'); return; }
+  if (!confirm(`Delete all ${cues.length} captions?`)) return;
+  cues = []; renderCues(); drawCrop(); markDirty();
+});
+
+// ---------- Caption style controls ----------
+function syncStyleControls() {
+  $('#capSize').value = capStyle.size;
+  $('#capSizeLabel').textContent = capStyle.size;
+  $('#capColor').value = capStyle.color;
+  $('#capBg').value = capStyle.bg;
+  $('#capBgOpacity').value = capStyle.bgOpacity;
+  $('#capBgOpacityLabel').textContent = capStyle.bgOpacity + '%';
+  $('#capBold').checked = capStyle.bold;
+  $('#capPos').value = capStyle.pos;
+  $('#capPosLabel').textContent = capStyle.pos + '%';
+  $$('.chips[data-group="cappos"] .chip').forEach(c => c.classList.toggle('active', Number(c.dataset.val) === capStyle.pos));
+}
+
+function styleChanged() {
+  sampleUntil = Date.now() + 2500;     // show a sample caption briefly if none is active
+  syncStyleControls();
+  drawCrop();
+  setTimeout(drawCrop, 2600);          // remove the sample again
+  markDirty();
+}
+
+['capSize', 'capColor', 'capBg', 'capBgOpacity', 'capBold', 'capPos'].forEach(id =>
+  $('#' + id).addEventListener('input', () => {
+    capStyle.size      = parseInt($('#capSize').value, 10);
+    capStyle.color     = $('#capColor').value;
+    capStyle.bg        = $('#capBg').value;
+    capStyle.bgOpacity = parseInt($('#capBgOpacity').value, 10);
+    capStyle.bold      = $('#capBold').checked;
+    capStyle.pos       = parseInt($('#capPos').value, 10);
+    styleChanged();
+  })
+);
+$('.chips[data-group="cappos"]').addEventListener('click', e => {
+  const chip = e.target.closest('.chip');
+  if (!chip) return;
+  capStyle.pos = parseInt(chip.dataset.val, 10);
+  styleChanged();
+});
+
+// ---------- Transcript import ----------
+// "01:02:03,500" or "2:03.5" -> seconds
+function tsToSec(s) {
+  return s.replace(',', '.').split(':').map(parseFloat).reduce((acc, v) => acc * 60 + v, 0);
+}
+
+// Understands SRT, VTT and plain lines such as "0:12 text" or "[1:05] text"
+function parseTranscript(raw) {
+  const lines = raw.replace(/^﻿/, '').replace(/\r\n?/g, '\n').split('\n');
+  const TS = '(?:\\d{1,2}:)?\\d{1,2}:\\d{2}(?:[.,]\\d{1,3})?';
+  const arrow = new RegExp('^\\s*(' + TS + ')\\s*-->\\s*(' + TS + ')');
+
+  // 1) SRT / VTT blocks
+  const out = [];
+  let cur = null;
+  for (const line of lines) {
+    const m = line.match(arrow);
+    if (m) { if (cur) out.push(cur); cur = { start: tsToSec(m[1]), end: tsToSec(m[2]), text: '' }; continue; }
+    if (!cur) continue;
+    if (!line.trim()) { out.push(cur); cur = null; continue; }
+    cur.text += (cur.text ? '\n' : '') + line.trim().replace(/<[^>]+>/g, '');
+  }
+  if (cur) out.push(cur);
+  if (out.length) return out;
+
+  // 2) "0:12 text" lines: each caption ends where the next one starts
+  const one = new RegExp('^\\s*\\[?(' + TS + ')\\]?\\s*[-\\u2013\\u2014:]?\\s+(.+)$');
+  const stamped = [];
+  lines.forEach(line => { const m = line.match(one); if (m) stamped.push({ start: tsToSec(m[1]), text: m[2].trim() }); });
+  stamped.forEach((c, i) => {
+    const next = stamped[i + 1];
+    c.end = next ? Math.min(next.start, c.start + 10) : c.start + 4;
+    if (c.end - c.start < 0.5) c.end = c.start + 2;
+  });
+  return stamped;
+}
+
+// Keep only captions that fit inside this video
+function applyImported(list) {
+  if (!currentVideo) return;
+  const maxT = maxTime();
+  const items = list
+    .map(c => ({ start: r2(c.start), end: r2(Math.min(c.end, maxT)), text: c.text.trim() }))
+    .filter(c => c.text && isFinite(c.start) && isFinite(c.end) && c.start < maxT - 0.1 && c.end - c.start >= 0.1)
+    .slice(0, 3000);
+  if (!items.length) { toast('No usable captions were found inside this video\'s length.'); return; }
+  if (cues.length && !confirm(`Replace your ${cues.length} existing captions with ${items.length} imported captions?`)) return;
+  cues = items.map(c => ({ id: ++cueSeq, ...c }));
+  sortCues(); renderCues(); drawCrop(); markDirty();
+  toast(`${items.length} captions imported.`);
+}
+
+function importText(text) {
+  const list = parseTranscript(text);
+  if (!list.length) {
+    toast('No timestamps found. Use SRT, VTT or lines like "0:12 text". For plain text use "Split plain text across clip".');
+    return;
+  }
+  applyImported(list);
+}
+
+$('#importPasted').addEventListener('click', () => {
+  if (!currentVideo) return;
+  const text = $('#transcriptText').value;
+  if (!text.trim()) { toast('Paste a transcript first.'); return; }
+  importText(text);
+});
+
+$('#importFileBtn').addEventListener('click', () => $('#transcriptFile').click());
+$('#transcriptFile').addEventListener('change', e => {
+  const file = e.target.files[0];
+  e.target.value = '';
+  if (!file || !currentVideo) return;
+  if (file.size > 2 * 1024 * 1024) { toast('That file is too large for a transcript (2 MB maximum).'); return; }
+  const reader = new FileReader();
+  reader.onload = () => importText(String(reader.result));
+  reader.onerror = () => toast('Could not read that file.');
+  reader.readAsText(file);
+});
+
+// Plain text -> captions spread across the selected clip, sized by text length
+$('#splitPlain').addEventListener('click', () => {
+  if (!currentVideo) return;
+  const raw = $('#transcriptText').value.trim();
+  if (!raw) { toast('Paste some text first.'); return; }
+
+  const chunks = [];
+  let part = [];
+  raw.split(/\s+/).forEach(w => {
+    part.push(w);
+    if (part.length >= 7 || (/[.!?]$/.test(w) && part.length >= 3)) { chunks.push(part.join(' ')); part = []; }
+  });
+  if (part.length) chunks.push(part.join(' '));
+
+  const inside = cues.filter(c => c.start >= clip.start - 1e-6 && c.end <= clip.end + 1e-6);
+  if (inside.length && !confirm(`Replace the ${inside.length} captions inside the selected clip?`)) return;
+  cues = cues.filter(c => !inside.includes(c));
+
+  const total = chunks.reduce((n, c) => n + c.length, 0);
+  const span = clip.end - clip.start;
+  let t = clip.start;
+  chunks.forEach((txt, i) => {
+    const d = span * txt.length / total;
+    const s = r2(t), e = r2(i === chunks.length - 1 ? clip.end : t + d);
+    if (e - s >= 0.1) cues.push({ id: ++cueSeq, start: s, end: e, text: txt });
+    t += d;
+  });
+  sortCues(); renderCues(); drawCrop(); markDirty();
+  toast('Text split by length across the clip. Adjust the timings so they match the speech.');
+});
+
+// ---------- Suggest moments (heuristic, NOT AI) ----------
+function titleFromText(text, n) {
+  const first = (text.replace(/\s+/g, ' ').trim().match(/^[^.!?]*/) || [''])[0];
+  const words = first.split(' ').filter(Boolean).slice(0, 7).join(' ');
+  return words ? words.charAt(0).toUpperCase() + words.slice(1) : 'Short ' + n;
+}
+
+function defaultTitle(start, end, n) {
+  const inside = cues.filter(c => c.text.trim() && c.end > start && c.start < end);
+  return inside.length ? titleFromText(inside.map(c => c.text).join(' '), n) : 'Short ' + n;
+}
+
+function suggestMoments() {
+  if (!currentVideo) return;
+  const real = cues.filter(c => c.text.trim());
+  if (!real.length) { toast('Import a transcript first, then try again.'); return; }
+
+  const target = clamp(parseInt(durRange.value, 10) || 30, MIN_CLIP, MAX_CLIP);
+  const want = maxClips();
+  const kws = $('#kwInput').value.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+  const maxT = maxTime();
+  const cands = [];
+
+  // Try a window starting at every caption
+  real.forEach(c0 => {
+    const s = r1(c0.start);
+    let e = Math.min(maxT, s + target);
+    // Snap the end to a caption boundary when that keeps the length within 15-60s
+    const straddle = real.find(c => c.start < e && c.end > e);
+    if (straddle) {
+      if (straddle.end - s <= MAX_CLIP && straddle.end <= maxT) e = straddle.end;
+      else if (straddle.start - s >= MIN_CLIP) e = straddle.start;
+    }
+    e = r1(e);
+    const dur = e - s;
+    if (dur < MIN_CLIP - 1e-6 || dur > MAX_CLIP + 1e-6) return;
+
+    const text = real.filter(c => c.end > s && c.start < e).map(c => c.text).join(' ');
+    const lower = text.toLowerCase();
+    const words = (text.match(/\S+/g) || []).length;
+    const q = (text.match(/\?/g) || []).length;
+    const ex = (text.match(/!/g) || []).length;
+    const kw = kws.reduce((n, k) => n + lower.split(k).length - 1, 0);
+    const score = (words / dur) * 10 + q * 2 + ex * 1.5 + kw * 5;
+    cands.push({
+      start: s, end: e, score, text,
+      reason: `${words} words, ${q} question${q === 1 ? '' : 's'}, ${ex} exclamation${ex === 1 ? '' : 's'}` +
+              (kws.length ? `, ${kw} keyword hit${kw === 1 ? '' : 's'}` : '')
+    });
+  });
+
+  // Best first, never overlapping
+  cands.sort((a, b) => b.score - a.score);
+  const picked = [];
+  for (const c of cands) {
+    if (picked.length >= want) break;
+    if (picked.every(p => c.end <= p.start || c.start >= p.end)) picked.push(c);
+  }
+  picked.forEach((p, i) => { p.title = titleFromText(p.text, i + 1); });
+  suggestions = picked;
+  renderSuggestions();
+  toast(picked.length ? `${picked.length} suggested moment${picked.length === 1 ? '' : 's'} found.`
+                      : 'No 15 to 60 second stretch found. Try another duration or a longer transcript.');
+}
+
+function renderSuggestions() {
+  const box = $('#suggestList');
+  if (!suggestions.length) { box.innerHTML = ''; return; }
+  box.innerHTML = suggestions.map((s, i) => `
+    <div class="suggest-row">
+      <b>${i + 1}. ${esc(s.title)}</b>
+      <span>${fmtPrecise(s.start)} to ${fmtPrecise(s.end)} · ${(s.end - s.start).toFixed(1)}s · ${esc(s.reason)}</span>
+      <div class="suggest-actions">
+        <button class="btn btn-ghost" data-use="${i}">Use in editor</button>
+        <button class="btn btn-ghost" data-addsug="${i}">Add to Shorts list</button>
+      </div>
+    </div>`).join('');
+}
+
+$('#suggestBtn').addEventListener('click', suggestMoments);
+
+$('#suggestList').addEventListener('click', e => {
+  const btn = e.target.closest('button');
+  if (!btn || !currentVideo) return;
+  if (btn.dataset.use !== undefined) {
+    const s = suggestions[Number(btn.dataset.use)];
+    if (!s) return;
+    videoEl.pause();
+    clip.start = s.start; clip.end = s.end;
+    hideTrimError();
+    videoEl.currentTime = s.start;
+    updateAll();
+    editorCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else if (btn.dataset.addsug !== undefined) {
+    const s = suggestions[Number(btn.dataset.addsug)];
+    if (s) addShort(s.start, s.end, s.title);
+  }
+});
+
+$('#addAllSuggest').addEventListener('click', () => {
+  if (!currentVideo) return;
+  if (!suggestions.length) { toast('Press "Suggest moments" first.'); return; }
+  let added = 0;
+  for (const s of suggestions) {
+    if (clips.length >= maxClips()) break;
+    if (addShort(s.start, s.end, s.title, true)) added++;
+  }
+  toast(added ? `${added} Short${added === 1 ? '' : 's'} added to your list.` : `Your list is full (${maxClips()} Shorts). Delete one or choose a higher number.`);
+});
+
+// ---------- Adding Shorts to the list ----------
+function addShort(start, end, title, quiet) {
+  if (!currentVideo) return false;
+  if (clips.length >= maxClips()) { if (!quiet) toast(`You already have ${maxClips()} Shorts. Delete one or choose a higher number.`); return false; }
+  const dur = end - start;
+  if (dur < MIN_CLIP - 1e-6 || dur > MAX_CLIP + 1e-6) { if (!quiet) toast('That clip is not between 15 and 60 seconds.'); return false; }
+  const duplicate = clips.some(c => Math.abs(c.start - start) < 0.5 && Math.abs(c.end - end) < 0.5);
+  if (duplicate) { if (!quiet) toast('This exact clip is already in your Shorts list.'); return false; }
+  const n = clips.length + 1;
+  clips.push({
+    id: ++clipSeq,
+    title: (title || defaultTitle(start, end, n)).slice(0, 80),
+    start, end,
+    zoom: crop.zoom, x: crop.x, y: crop.y,
+    res: $('.chips[data-group="res"] .chip.active').dataset.val,
+    exported: false
+  });
+  renderClips(); updateGenerate(); markDirty();
+  if (!quiet) toast(`Short ${clips.length} added. Press Export in the list to render it.`);
+  return true;
+}
+
+// Editing a Short's title in the list
+$('#clipList').addEventListener('change', e => {
+  const id = e.target.dataset.title;
+  if (!id) return;
+  const c = clips.find(x => x.id === Number(id));
+  if (!c) return;
+  c.title = e.target.value.trim().slice(0, 80) || 'Short ' + (clips.indexOf(c) + 1);
+  e.target.value = c.title;
+  markDirty();
+});
+
+// ---------- SRT export ----------
+function fmtSrt(t) {
+  const ms = Math.round(Math.max(0, t) * 1000);
+  const p = (n, l = 2) => String(n).padStart(l, '0');
+  return `${p(Math.floor(ms / 3600000))}:${p(Math.floor(ms % 3600000 / 60000))}:${p(Math.floor(ms % 60000 / 1000))},${p(ms % 1000, 3)}`;
+}
+
+function buildSRT(list) {
+  return list.map((c, i) =>
+    `${i + 1}\n${fmtSrt(c.start)} --> ${fmtSrt(c.end)}\n${c.text.trim().replace(/\n\s*\n/g, '\n')}\n`
+  ).join('\n');
+}
+
+// Captions that overlap [s, e], with times shifted so the Short starts at 0
+function cuesInRange(s, e) {
+  return cues
+    .filter(c => c.text.trim() && c.end > s + 1e-6 && c.start < e - 1e-6)
+    .map(c => ({ start: Math.max(c.start, s) - s, end: Math.min(c.end, e) - s, text: c.text }));
+}
+
+function downloadBlob(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
+const slug = s => s.replace(/[^\w-]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 40);
+const baseName = () => slug(currentVideo.file.name.replace(/\.[^.]+$/, '')) || 'video';
+
+function downloadSRT(list, name) {
+  if (!list.length) { toast('There are no captions in that range to export.'); return; }
+  downloadBlob(new Blob([buildSRT(list)], { type: 'application/x-subrip;charset=utf-8' }), name);
+  toast('SRT downloaded.');
+}
+
+function downloadClipSRT(id) {
+  const c = clips.find(x => x.id === id);
+  if (c) downloadSRT(cuesInRange(c.start, c.end), `${baseName()}_${slug(c.title) || 'short'}.srt`);
+}
+
+$('#srtClip').addEventListener('click', () => { if (currentVideo) downloadSRT(cuesInRange(clip.start, clip.end), `${baseName()}_clip.srt`); });
+$('#srtAll').addEventListener('click',  () => { if (currentVideo) downloadSRT(cuesInRange(0, currentVideo.duration), `${baseName()}.srt`); });
+
+// =====================================================
+// STEP 5: EXPORT VERTICAL VIDEO (canvas + MediaRecorder)
+// The cropped, captioned frames are drawn onto an off-screen canvas while the
+// video plays, and the browser records that canvas plus the audio. MP4 is used
+// where the browser can record it; otherwise WebM, and the app says so.
+// =====================================================
+
+let exporting = false;
+let exportCancelled = false;
+let exportUrl = null;   // blob URL of the finished export (released when the dialog closes)
+
+function pickExportType() {
+  if (!window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream) return null;
+  const types = [
+    ['video/mp4;codecs=avc1.640028,mp4a.40.2', 'mp4'],
+    ['video/mp4;codecs=avc1,mp4a.40.2', 'mp4'],
+    ['video/mp4', 'mp4'],
+    ['video/webm;codecs=vp9,opus', 'webm'],
+    ['video/webm;codecs=vp8,opus', 'webm'],
+    ['video/webm', 'webm']
+  ];
+  for (const [mime, ext] of types) if (MediaRecorder.isTypeSupported(mime)) return { mime, ext };
+  return null;
+}
+
+// Audio: route the video's sound into a stream we can record. Created on first export.
+let audioCtx = null, audioDest = null, speakerGain = null;
+async function getAudioStream() {
+  try {
+    if (!audioCtx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      audioCtx = new AC();
+      const src = audioCtx.createMediaElementSource(videoEl);
+      audioDest = audioCtx.createMediaStreamDestination();
+      speakerGain = audioCtx.createGain();
+      src.connect(audioDest);                 // to the recorder
+      src.connect(speakerGain);               // to the speakers (muted during export)
+      speakerGain.connect(audioCtx.destination);
+    }
+    if (audioCtx.state === 'suspended') await audioCtx.resume();
+    return audioDest.stream;
+  } catch (err) { return null; }
+}
+videoEl.addEventListener('play', () => { if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume(); });
+
+function seekTo(t) {
+  return new Promise(res => {
+    if (Math.abs(videoEl.currentTime - t) < 0.02) { res(); return; }
+    const done = () => { videoEl.removeEventListener('seeked', done); res(); };
+    videoEl.addEventListener('seeked', done);
+    videoEl.currentTime = t;
+  });
+}
+
+// ----- Export dialog -----
+const exportModal = $('#exportModal');
+
+function setExportModal(mode, o = {}) { // mode: 'busy' | 'done' | 'error'
+  exportModal.hidden = false;
+  $('#expTitle').textContent = o.title || '';
+  $('#expSub').textContent   = o.sub || '';
+  $('#expNote').textContent  = o.note || '';
+  $('#expProgress').hidden = mode !== 'busy';
+  $('#expResult').hidden   = mode !== 'done';
+  $('#expDownload').hidden = mode !== 'done';
+  $('#expClose').textContent = mode === 'busy' ? 'Cancel export' : 'Close';
+}
+function setExportProgress(p, label) {
+  $('#expBar').style.width = Math.round(p * 100) + '%';
+  $('#expSub').textContent = label;
+}
+function closeExportModal() {
+  exportModal.hidden = true;
+  const v = $('#expVideo');
+  v.pause(); v.removeAttribute('src'); v.load();
+  if (exportUrl) { URL.revokeObjectURL(exportUrl); exportUrl = null; }
+}
+$('#expClose').addEventListener('click', () => {
+  if (exporting) { exportCancelled = true; $('#expNote').textContent = 'Cancelling...'; }
+  else closeExportModal();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !exportModal.hidden) $('#expClose').click(); });
+
+// ----- The exporter -----
+async function exportShort(id) {
+  if (exporting || !currentVideo) return;
+  const item = clips.find(c => c.id === id);
+  if (!item) return;
+  const type = pickExportType();
+  if (!type) { toast('This browser cannot record video. Use a recent Chrome, Edge or Safari.'); return; }
+
+  exporting = true;
+  exportCancelled = false;
+  const [w, h] = item.res === '1080p' ? [1080, 1920] : [720, 1280];
+  const dur = item.end - item.start;
+  const wasMuted = videoEl.muted;
+  const chunks = [];
+  let rec = null, failMsg = '', hiddenAbort = false, finishLoop = null;
+
+  // Frames stop being drawn when the tab is hidden, so stop instead of producing a frozen video
+  const onVis = () => {
+    if (document.hidden) { hiddenAbort = true; exportCancelled = true; if (finishLoop) finishLoop(); }
+  };
+  document.addEventListener('visibilitychange', onVis);
+
+  setExportModal('busy', {
+    title: 'Exporting "' + item.title + '"',
+    sub: 'Preparing...',
+    note: `Keep this tab open and visible. Recording runs in real time (about ${Math.round(dur)} seconds).`
+  });
+  setExportProgress(0, 'Preparing...');
+
+  try {
+    videoEl.pause();
+    clipPlaying = false;
+    videoEl.muted = false;
+
+    const off = document.createElement('canvas');
+    off.width = w; off.height = h;
+    const octx = off.getContext('2d');
+    await seekTo(item.start);
+    paintFrame(octx, w, h, item, item.start);
+
+    const stream = off.captureStream(30);
+    const audio = await getAudioStream();
+    let hasAudio = false;
+    if (audio) audio.getAudioTracks().forEach(tr => { stream.addTrack(tr); hasAudio = true; });
+
+    const opts = { mimeType: type.mime, videoBitsPerSecond: h > 1500 ? 8000000 : 5000000 };
+    if (hasAudio) opts.audioBitsPerSecond = 128000;
+    rec = new MediaRecorder(stream, opts);
+    const stopped = new Promise(res => { rec.onstop = res; });
+    rec.ondataavailable = ev => { if (ev.data && ev.data.size) chunks.push(ev.data); };
+    rec.onerror = () => { failMsg = 'The browser reported a recording error.'; exportCancelled = true; if (finishLoop) finishLoop(); };
+
+    if (speakerGain) speakerGain.gain.value = 0;   // do not play the export through the speakers
+    rec.start(500);
+    await videoEl.play();
+
+    // Draw frames until the Short ends (about 30 per second)
+    await new Promise(resolve => {
+      finishLoop = resolve;
+      let last = 0;
+      const step = now => {
+        if (exportCancelled) { resolve(); return; }
+        const t = videoEl.currentTime;
+        if (now - last >= 33) { paintFrame(octx, w, h, item, t); last = now; }
+        setExportProgress(clamp((t - item.start) / dur, 0, 1), `Recording ${fmtPrecise(Math.max(0, t - item.start))} / ${fmtPrecise(dur)}`);
+        if (t >= item.end || videoEl.ended || videoEl.paused) { resolve(); return; }
+        requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    });
+
+    if (!exportCancelled) {
+      paintFrame(octx, w, h, item, Math.min(videoEl.currentTime, item.end));
+      await sleep(250);                              // let the last frames reach the recorder
+    }
+    videoEl.pause();
+    if (rec.state !== 'inactive') rec.stop();
+    await stopped;
+
+    if (exportCancelled) {
+      failMsg = hiddenAbort ? 'Export stopped because the tab was hidden. Keep this tab visible while exporting.' : (failMsg || 'cancelled');
+    } else {
+      const blob = new Blob(chunks, { type: type.mime.split(';')[0] });
+      if (blob.size < 2000) throw new Error('the recording was empty.');
+      exportUrl = URL.createObjectURL(blob);
+      const name = `${baseName()}_${slug(item.title) || 'short'}.${type.ext}`;
+      const dl = $('#expDownload');
+      dl.href = exportUrl; dl.download = name;
+      $('#expVideo').src = exportUrl;
+      $('#expName').textContent   = name;
+      $('#expName').title         = name;
+      $('#expFormat').textContent = type.ext.toUpperCase();
+      $('#expSize').textContent   = fmtSize(blob.size);
+      $('#expRes').textContent    = `${w}×${h}`;
+      setExportModal('done', {
+        title: 'Your Short is ready',
+        sub: item.title,
+        note: (type.ext === 'webm' ? 'This browser cannot record MP4, so the file is WebM. ' : '') +
+              (hasAudio ? '' : 'No audio could be captured from this video. ') +
+              'Preview it, then press Download.'
+      });
+      item.exported = true;
+      renderClips();
+      saveProject(true);   // creates/updates the project so the dashboard counts it
+    }
+  } catch (err) {
+    failMsg = 'Export failed: ' + (err && err.message ? err.message : err);
+  } finally {
+    document.removeEventListener('visibilitychange', onVis);
+    try { if (rec && rec.state !== 'inactive') rec.stop(); } catch (e) { /* already stopped */ }
+    videoEl.pause();
+    videoEl.muted = wasMuted;
+    if (speakerGain) speakerGain.gain.value = 1;
+    exporting = false;
+    clipPlaying = false;
+    if (currentVideo) { videoEl.currentTime = clip.start; updateAll(); }
+  }
+
+  if (failMsg === 'cancelled') { closeExportModal(); toast('Export cancelled.'); }
+  else if (failMsg) setExportModal('error', { title: 'Export did not finish', note: failMsg });
+}
+
+// =====================================================
+// STEP 6: PROJECTS (LocalStorage)
+// Saves clips, captions, style and video info. The video file itself is too
+// big for browser storage, so opening a project asks for the same file again.
+// =====================================================
+
+let currentProjectId = null;
+let pendingProject = null;
+let autosaveTimer = null;
+
+// Save a moment after edits, but only for projects the user already saved/exported
+function markDirty() {
+  if (!currentProjectId) return;
+  clearTimeout(autosaveTimer);
+  autosaveTimer = setTimeout(() => saveProject(true), 800);
+}
+
+function saveProject(silent) {
+  if (!currentVideo) return false;
+  const projects = load(STORE.projects, []);
+  const now = Date.now();
+  let p = projects.find(x => x.id === currentProjectId);
+  if (!p) {
+    p = { id: 'p' + now.toString(36) + Math.random().toString(36).slice(2, 6), created: now };
+    projects.push(p);
+    currentProjectId = p.id;
+  }
+  p.name      = ($('#projName').value.trim() || 'Untitled project').slice(0, 80);
+  p.updated   = now;
+  p.video     = { name: currentVideo.file.name, size: currentVideo.file.size, duration: currentVideo.duration };
+  p.shorts    = clips.map(c => ({ title: c.title, start: c.start, end: c.end, zoom: c.zoom, x: c.x, y: c.y, res: c.res, exported: !!c.exported }));
+  p.clipCount = clips.length;
+  p.exports   = clips.filter(c => c.exported).length;
+  p.cues      = cues.map(c => ({ start: c.start, end: c.end, text: c.text }));
+  p.style     = Object.assign({}, capStyle);
+  p.status    = p.exports ? 'Exported' : (p.clipCount ? 'In progress' : 'Draft');
+  const ok = save(STORE.projects, projects);
+  if (ok) { renderProjects(); if (!silent) toast('Project saved.'); }
+  return ok;
+}
+
+$('#saveProject').addEventListener('click', () => { if (currentVideo) saveProject(false); });
+
+function openProject(id) {
+  const p = load(STORE.projects, []).find(x => x.id === id);
+  if (!p) { toast('Project not found.'); return; }
+  clearVideo();               // start from a clean editor
+  pendingProject = p;
+  showView('create');
+  $('#pendingText').textContent = `Opening "${p.name}". Choose the video file "${p.video ? p.video.name : ''}" to restore its clips and captions (videos are not stored in the browser).`;
+  $('#pendingBanner').hidden = false;
+}
+
+$('#pendingCancel').addEventListener('click', () => { pendingProject = null; $('#pendingBanner').hidden = true; });
+
+// Apply a saved project to the video that was just loaded (values are validated)
+function applyProject(p) {
+  const maxT = maxTime();
+  const warn = [];
+  if (p.video && (p.video.name !== currentVideo.file.name || Math.abs((p.video.duration || 0) - currentVideo.duration) > 1))
+    warn.push('This video looks different from the saved one, so check that captions and clips line up.');
+
+  const s = p.style || {};
+  const hex = v => /^#[0-9a-f]{6}$/i.test(v);
+  capStyle = {
+    size: clamp(+s.size || 56, 24, 100),
+    color: hex(s.color) ? s.color : '#ffffff',
+    bg: hex(s.bg) ? s.bg : '#000000',
+    bgOpacity: clamp(Number.isFinite(+s.bgOpacity) ? +s.bgOpacity : 60, 0, 100),
+    bold: s.bold !== false,
+    pos: clamp(+s.pos || 80, 8, 92)
+  };
+
+  cues = (p.cues || [])
+    .filter(c => c && typeof c.text === 'string' && c.start < maxT && c.end > c.start)
+    .map(c => ({ id: ++cueSeq, start: c.start, end: Math.min(c.end, maxT), text: c.text }));
+  sortCues();
+
+  const saved = p.shorts || [];
+  const fits = saved.filter(x => x.start >= 0 && x.end <= maxT + 1e-6 && x.end - x.start >= MIN_CLIP - 1e-6);
+  if (fits.length < saved.length) warn.push('Some clips did not fit this video and were skipped.');
+  clips = fits.map(x => ({
+    id: ++clipSeq, title: String(x.title || 'Short').slice(0, 80),
+    start: x.start, end: x.end,
+    zoom: clamp(Number.isFinite(+x.zoom) ? +x.zoom : 1, 1, 3),
+    x: clamp(Number.isFinite(+x.x) ? +x.x : 0.5, 0, 1), y: clamp(Number.isFinite(+x.y) ? +x.y : 0.5, 0, 1),
+    res: x.res === '1080p' ? '1080p' : '720p', exported: !!x.exported
+  }));
+
+  currentProjectId = p.id;
+  $('#projName').value = p.name;
+  syncStyleControls(); renderCues(); renderClips(); updateAll();
+  toast(warn.length ? warn.join(' ') : `Project "${p.name}" restored.`);
+}
+
+// ---------- Init ----------
+applySettings();
+renderProjects();
+</script>
+</body>
+</html>
